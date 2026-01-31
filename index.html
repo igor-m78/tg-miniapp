@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Регистрация</title>
+
+  <!-- (Опционально) твои стили; можно вынести в отдельный CSS -->
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; padding: 16px; }
+    .ft-field { margin: 12px 0; display: grid; gap: 6px; }
+    label { font-size: 14px; }
+    input, select, button { font-size: 16px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 10px; }
+    .ft-error { color: #ff6b6b; font-size: 13px; display:none; }
+    .ft-message { margin-top: 10px; display:none; }
+    .ft-success-container { display:none; padding: 16px; border: 1px solid #e7e7e7; border-radius: 14px; }
+    .ft-tg-link, .ft-email-link, .ft-help-link { text-decoration: underline; }
+    .ft-dropdown { border: 1px solid #ddd; border-radius: 10px; margin-top: 6px; overflow: hidden; }
+    .ft-dropdown-item { padding: 10px 12px; cursor: pointer; }
+    .ft-dropdown-item:hover { background: #f5f5f5; }
+  </style>
+</head>
+
+<body>
+  <div id="ft-form-universal" class="ft-form-core" style="opacity: 0; transition: opacity .5s ease;">
+    <!-- Вставь сюда ТВОЮ форму (можно без изменений) -->
+    <!-- ====== START: ТВОЙ HTML ФОРМЫ ====== -->
+    <!-- ... (твой <form id="ftForm"> ... </form> + success-container) ... -->
+    <!-- ====== END: ТВОЙ HTML ФОРМЫ ====== -->
+  </div>
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <script>
+  (function(){
+    'use strict';
+
+    // === 0) Telegram init ===
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      // Можно подстроить цвета под тему Telegram:
+      document.body.style.background = tg.themeParams?.bg_color || '';
+      document.body.style.color = tg.themeParams?.text_color || '';
+    }
+
+    // ================== КОНФИГУРАЦИЯ ==================
+    const CONFIG = {
+      // Вариант А (быстро): отправлять напрямую в твой Yandex Function
+      API_BASE: "https://functions.yandexcloud.net/d4eajagq70ar2qug7ar5",
+
+      // Вариант B (правильнее): отправлять на свой бэкенд /api/submit,
+      // который проверит initData и уже потом дернет Yandex Function.
+      // API_BASE: "https://your-domain.com/api/submit",
+
+      IS_GENERAL_LANDING: true,
+      LANDING_TYPE_GENERAL: "all_events",
+      FORUM_FIXED: "ПФМ",
+      SPREADSHEET_ID: "16a3MSd-b8F2T1EbwaFVBMyPmF5oat9UUajK3VytQuis",
+      DOV_HIDE_STREAM: true,
+      VUZ_MIN_CHARS: 2,
+      VUZ_SUGGEST_LIMIT: 20
+    };
+
+    const SHEETS = {
+      MSK_VUZ:  "МСК вузы",
+      SPB_VUZ:  "СПБ вузы",
+      MSK_SSUZ: "МСК ссузы",
+      NSK_VUZ:  "НСК вузы",
+    };
+
+    const STREAMS = { /* ← вставь твой STREAMS без изменений */ };
+    const FORUM_NAMES_WITH_DATES = { /* ← вставь твой FORUM_NAMES_WITH_DATES */ };
+    const TG_CHANNELS = { /* ← вставь твой TG_CHANNELS */ };
+
+    // ====== DOM ======
+    const formCore = document.getElementById('ft-form-universal');
+    const form = document.getElementById('ftForm');
+    const successContainer = document.getElementById('ftSuccessContainer');
+    const closeSuccessBtn = document.getElementById('ftCloseSuccessBtn');
+    const successText = document.getElementById('ftSuccessText');
+
+    const firstnameInp = document.getElementById('ftFirstname');
+    const emailInp = document.getElementById('ftEmail');
+    const phoneInp = document.getElementById('ftPhone');
+    const careerdayWrap = document.getElementById('ftCareerdayWrap');
+    const careerdaySel = document.getElementById('ftCareerday');
+
+    const vuzInp = document.getElementById('ftVuz');
+    const vuzUnifiedInp = document.getElementById('ftVuzUnified');
+    const vuzDropdown = document.getElementById('ftVuzDropdown');
+
+    const yearWrap = document.getElementById('ftYearWrap');
+    const ageWrap = document.getElementById('ftAgeWrap');
+    const yearSel = document.getElementById('ftYear');
+    const ageSel = document.getElementById('ftAge');
+
+    const streamWrap = document.getElementById('ftStreamWrap');
+    const streamLabel = document.getElementById('ftStreamLabel');
+    const streamSel = document.getElementById('ftStream');
+
+    const customFacultyWrap = document.getElementById('ftCustomFacultyWrap');
+    const customFacultyInp = document.getElementById('ftCustomFaculty');
+    const errCustomFaculty = document.getElementById('ftErrCustomFaculty');
+    const streamFinalInp = document.getElementById('ftStreamFinal');
+
+    const consentChk = document.getElementById('ftConsent');
+    const submitBtn = document.getElementById('ftSubmitBtn');
+    const formMsg = document.getElementById('ftFormMsg');
+    const landingTypeInp = document.getElementById('ftLandingType');
+
+    const errEmail = document.getElementById('ftErrEmail');
+    const errPhone = document.getElementById('ftErrPhone');
+    const errConsent = document.getElementById('ftErrConsent');
+
+    // Показываем форму
+    setTimeout(() => { if (formCore) formCore.style.opacity = '1'; }, 50);
+
+    // === 1) Автоподстановка имени из Telegram ===
+    if (tg?.initDataUnsafe?.user && firstnameInp && !firstnameInp.value) {
+      firstnameInp.value = tg.initDataUnsafe.user.first_name || '';
+    }
+
+    function setError(el, text) {
+      if (!el) return;
+      el.style.display = text ? 'block' : 'none';
+      el.textContent = text || '';
+    }
+
+    function normalizePhone(raw) {
+      let s = (raw || '').trim().replace(/[^\d+]/g, '');
+      if (/^8\d{10}$/.test(s)) s = '+7' + s.slice(1);
+      if (/^7\d{10}$/.test(s)) s = '+7' + s;
+      return s;
+    }
+    function isValidPhone(s) { return /^\+7\d{10}$/.test(s); }
+    function isValidEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s||'').trim()); }
+
+    function getForumNameWithoutDate(code) {
+      const full = FORUM_NAMES_WITH_DATES[code] || code;
+      return full.replace(/\s\d+\s[а-я]+$/, '');
+    }
+    function getTgChannel(code) { return TG_CHANNELS[code] || TG_CHANNELS['НИТМ']; }
+
+    function generateSuccessText(forumCode) {
+      const forumName = getForumNameWithoutDate(forumCode);
+      const tgChannel = getTgChannel(forumCode);
+      return `Получили твою регистрацию на ${forumName}.<br>
+        Отправим письмо с билетом на указанную тобой почту.<br>
+        Если не увидишь его, проверь спам и промоакции.<br><br>
+        Подписывайся на ТГ <a href="${tgChannel.url}" target="_blank" rel="noopener">${tgChannel.text}</a>.<br>
+        Связь с организаторами: <a href="mailto:careerday@futuretoday.ru">careerday@futuretoday.ru</a>
+        или <a href="https://t.me/careerday_help" target="_blank" rel="noopener">@careerday_help</a>`;
+    }
+
+    function toggleCustomFacultyField(show) {
+      if (!customFacultyWrap) return;
+      customFacultyWrap.style.display = show ? 'block' : 'none';
+      if (!show) {
+        customFacultyInp.value = '';
+        setError(errCustomFaculty, '');
+      }
+    }
+    function updateStreamFinalValue() {
+      const v = streamSel.value;
+      if (v === 'другое') {
+        const custom = (customFacultyInp.value || '').trim();
+        streamFinalInp.value = custom || 'другое';
+      } else {
+        streamFinalInp.value = v;
+      }
+    }
+
+    // === 2) Успех + закрытие WebApp ===
+    function showSuccessMessage() {
+      const cd = CONFIG.IS_GENERAL_LANDING ? careerdaySel.value : CONFIG.FORUM_FIXED;
+      successText.innerHTML = generateSuccessText(cd);
+      form.style.display = 'none';
+      successContainer.style.display = 'block';
+      formCore.scrollIntoView({ behavior:'smooth', block:'start' });
+
+      // Можно показать кнопку "Закрыть" и закрывать WebApp
+      if (tg) tg.HapticFeedback?.notificationOccurred('success');
+    }
+
+    function closeWebApp(e){
+      e?.preventDefault?.();
+      if (tg) tg.close();
+      // если открыть в браузере — просто прячем успех
+      successContainer.style.display = 'none';
+      form.style.display = 'block';
+      form.reset();
+    }
+
+    if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', closeWebApp);
+
+    // === 3) Логика форума/стримов: вставь из твоего кода (applyForumUI, populateForumOptions, etc.) ===
+    // ВАЖНО: оставь, но УБЕРИ обработку Tilda popup.
+
+    // ... сюда вставляешь:
+    // - forumToKey
+    // - applyForumUI (без tilda popup логики)
+    // - populateForumOptions
+    // - vuz autocomplete блок (можно 1-в-1)
+    // - initializeForm
+
+    // === 4) Submit: добавляем Telegram-поля в payload ===
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+
+      setError(errEmail,''); setError(errPhone,''); setError(errConsent,''); setError(errCustomFaculty,'');
+      formMsg.textContent=''; formMsg.style.display='none';
+
+      const email = (emailInp.value || '').trim();
+      const phone = normalizePhone(phoneInp.value || '');
+      if (phoneInp) phoneInp.value = phone;
+
+      let ok = true;
+      if (!isValidEmail(email)) { setError(errEmail,'Проверьте корректность email.'); ok = false; }
+      if (!isValidPhone(phone)) { setError(errPhone,'Телефон должен быть в формате +79998887766.'); ok = false; }
+
+      if (CONFIG.IS_GENERAL_LANDING && (!careerdaySel.value || careerdaySel.value === "")) {
+        formMsg.textContent = 'Пожалуйста, выберите форум для посещения.';
+        formMsg.style.display='block'; formMsg.style.color='#ff6b6b';
+        ok = false;
+      }
+
+      if (streamSel.value === 'другое' && streamWrap.style.display !== 'none') {
+        const custom = (customFacultyInp.value || '').trim();
+        if (!custom) { setError(errCustomFaculty,'Пожалуйста, укажите свой факультет.'); ok = false; }
+      }
+
+      if (!consentChk.checked) { setError(errConsent,'Нужно согласие, чтобы продолжить.'); ok = false; }
+      if (!ok) return;
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Отправляем...';
+
+      try {
+        const cd = CONFIG.IS_GENERAL_LANDING ? careerdaySel.value : CONFIG.FORUM_FIXED;
+        const vuzTyped = (vuzInp.value || '').trim();
+        const vuzUnified = (vuzUnifiedInp.value || '').trim();
+        const vuzToSave = vuzUnified || vuzTyped || null;
+        const streamValue = streamFinalInp.value || streamSel.value;
+
+        const payload = {
+          firstname: (firstnameInp.value || '').trim(),
+          email,
+          mobteleph: phone,
+          vuz: vuzToSave,
+          vuz_title: vuzTyped || null,
+          vuz_unified: vuzUnified || null,
+          careerday: cd,
+          landing_type: CONFIG.IS_GENERAL_LANDING ? CONFIG.LANDING_TYPE_GENERAL : (landingTypeInp.value || null),
+          year_of_grad: (cd === "ДОВ") ? null : (yearSel.value || null),
+          age: (cd === "ДОВ") ? (ageSel.value || null) : null,
+          stream: streamValue,
+          consent: true,
+          form_source: "telegram_webapp",
+          page_url: location.href,
+          ts: new Date().toISOString()
+        };
+
+        // UTM (если откроете ссылкой с utm)
+        const u = new URL(location.href);
+        payload.utm_source = u.searchParams.get("utm_source") || "";
+        payload.utm_medium = u.searchParams.get("utm_medium") || "";
+        payload.utm_campaign = u.searchParams.get("utm_campaign") || "";
+        payload.utm_content = u.searchParams.get("utm_content") || "";
+        payload.utm_term = u.searchParams.get("utm_term") || "";
+        payload.bot_tag = "";
+
+        // Telegram-поля
+        if (tg) {
+          payload.tg_init_data = tg.initData || ""; // для серверной проверки
+          payload.tg_user_id = tg.initDataUnsafe?.user?.id || null;
+          payload.tg_username = tg.initDataUnsafe?.user?.username || null;
+          payload.tg_first_name = tg.initDataUnsafe?.user?.first_name || null;
+          payload.tg_last_name = tg.initDataUnsafe?.user?.last_name || null;
+          payload.tg_language_code = tg.initDataUnsafe?.user?.language_code || null;
+          payload.tg_platform = tg.platform || null;
+        }
+
+        const resp = await fetch(CONFIG.API_BASE, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json().catch(()=>({}));
+        if (!resp.ok) throw new Error(data.message || 'Ошибка отправки формы');
+
+        showSuccessMessage();
+      } catch (err) {
+        console.error(err);
+        formMsg.textContent = 'Не получилось отправить форму. Попробуйте ещё раз чуть позже.';
+        formMsg.style.display='block';
+        formMsg.style.color='#ff6b6b';
+        if (tg) tg.HapticFeedback?.notificationOccurred('error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // initializeForm() — вставь из твоего кода
+    // initializeForm();
+
+  })();
+  </script>
+</body>
+</html>
