@@ -399,7 +399,40 @@
         font-size: 20px;
     }
 }
+/* Центровка формы на любых устройствах */
+html, body {
+  height: 100%;
+}
 
+body {
+  margin: 0;
+  background: #ffffff; /* можно оставить пустым, если Telegram сам задаёт */
+}
+
+.page {
+  min-height: 100svh;              /* современный “высота экрана” на мобилках */
+  display: flex;
+  justify-content: center;          /* горизонтальный центр */
+  align-items: center;              /* вертикальный центр */
+  padding: 24px 12px;               /* отступы, чтобы не прилипало к краям */
+  box-sizing: border-box;
+}
+
+/* На узких экранах лучше не центрировать по вертикали,
+   чтобы форма начиналась ближе к верху (удобнее со скроллом/клавиатурой) */
+@media (max-width: 600px) {
+  .page {
+    align-items: flex-start;
+    padding-top: 16px;
+  }
+}
+
+/* Если хочешь чуть шире на планшетах */
+@media (min-width: 768px) {
+  #ft-form-universal {
+    max-width: 600px; /* опционально */
+  }
+}
 /* Подключение шрифта Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 </style>
