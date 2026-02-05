@@ -743,33 +743,100 @@
 
     vuzDropdown.addEventListener("click", (e) => { e.stopPropagation(); });
   }
+// ====== START PARAM ROUTING (Telegram / browser) ======
 
-  // ====== INIT ======
-  function initializeForm() {
-    landingTypeInp.value = detectLandingType();
-    if (CONFIG.IS_GENERAL_LANDING) landingTypeInp.value = CONFIG.LANDING_TYPE_GENERAL;
+// 1) читаем стартовый параметр
+function getStartParam() {
+  // Telegram
+  const sp = tg?.initDataUnsafe?.start_param;
+  if (sp) return String(sp).trim();
 
-    populateForumOptions();
+  // fallback для теста в браузере
+  const u = new URL(location.href);
+  return (u.searchParams.get("start") || u.searchParams.get("scenario") || "").trim();
+}
 
-    if (CONFIG.IS_GENERAL_LANDING) {
-      if (careerdayWrap) careerdayWrap.style.display = "block";
-    } else {
-      if (careerdayWrap) careerdayWrap.style.display = "none";
-      if (careerdaySel) {
-        const option = document.createElement("option");
-        option.value = CONFIG.FORUM_FIXED;
-        option.textContent = FORUM_NAMES_WITH_DATES[CONFIG.FORUM_FIXED] || CONFIG.FORUM_FIXED;
-        careerdaySel.appendChild(option);
-        careerdaySel.value = CONFIG.FORUM_FIXED;
-      }
+// 2) маппинг сценариев -> конфиг
+// Можно расширять как угодно
+const SCENARIOS = {
+  // общий режим
+  all: { mode: "general" },
+
+  // solo сценарии
+  pfm: { mode: "solo", forum: "ПФМ", landing_type: "pfm_tg" },
+  pfs: { mode: "solo", forum: "ПФС", landing_type: "pfs_tg" },
+  nitm: { mode: "solo", forum: "НИТМ", landing_type: "nitm_tg" },
+  nits: { mode: "solo", forum: "НИТС", landing_type: "nits_tg" },
+  nitn: { mode: "solo", forum: "НИТН", landing_type: "nitn_tg" },
+  tcm: { mode: "solo", forum: "ТСМ", landing_type: "tcm_tg" },
+  dov: { mode: "solo", forum: "ДОВ", landing_type: "dov_tg" },
+};
+
+// 3) применяем сценарий к CONFIG и UI
+function applyScenario() {
+  const raw = getStartParam().toLowerCase();
+  const s = SCENARIOS[raw] || SCENARIOS.all;
+
+  if (s.mode === "solo") {
+    // переключаем в соло режим
+    CONFIG.IS_GENERAL_LANDING = false;
+    CONFIG.FORUM_FIXED = s.forum;
+
+    // landing_type: чтобы на бэке/в таблице различать источник
+    // (тут можно оставить как есть, если не нужно)
+    if (landingTypeInp) landingTypeInp.value = s.landing_type || "";
+
+    // если хочется, чтобы dropdown форума НЕ показывался:
+    if (careerdayWrap) careerdayWrap.style.display = "none";
+
+    // подставим фиксированное значение форума (важно для payload)
+    if (careerdaySel) {
+      // очищаем и кладем ровно одну опцию
+      careerdaySel.innerHTML = "";
+      const opt = document.createElement("option");
+      opt.value = s.forum;
+      opt.textContent = FORUM_NAMES_WITH_DATES[s.forum] || s.forum;
+      careerdaySel.appendChild(opt);
+      careerdaySel.value = s.forum;
     }
 
-    const initialForum = CONFIG.IS_GENERAL_LANDING ? "" : CONFIG.FORUM_FIXED;
-    applyForumUI(initialForum);
+    // применяем UI-правила под конкретный форум
+    applyForumUI(s.forum);
 
-    initVuzAutocomplete();
+    // сбросим и перезагрузим список вузов под город
+    loadedSheet = "";
     ensureVuzLoaded().catch(() => {});
+    return;
   }
+
+  // GENERAL
+  CONFIG.IS_GENERAL_LANDING = true;
+  if (careerdayWrap) careerdayWrap.style.display = "block";
+}
+  // ====== INIT ======
+function initializeForm() {
+  // 1) базовый landing type (если надо)
+  landingTypeInp.value = detectLandingType();
+  if (CONFIG.IS_GENERAL_LANDING) landingTypeInp.value = CONFIG.LANDING_TYPE_GENERAL;
+
+  // 2) применяем сценарий из start_param (он может переключить режим на solo)
+  applyScenario();
+
+  // 3) дальше — инициализация UI зависит от режима
+  if (CONFIG.IS_GENERAL_LANDING) {
+    // общий режим: заполняем список форумов
+    populateForumOptions();
+    // initialForum пустой, пользователь выбирает сам
+    applyForumUI("");
+  } else {
+    // соло режим: options уже выставлены в applyScenario()
+    // здесь просто ensureVuzLoaded и т.п.
+    applyForumUI(CONFIG.FORUM_FIXED);
+  }
+
+  initVuzAutocomplete();
+  ensureVuzLoaded().catch(() => {});
+}
 
   // ====== SUBMIT ======
   form.addEventListener('submit', async function(e) {
