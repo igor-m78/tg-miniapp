@@ -1018,8 +1018,10 @@ function updateFaqTabState() {
 
       toggleCustomFacultyField(false);
       updateStreamFinalValue();
-      renderFaq(currentForumCode());
       updateFaqTabState();
+        if (isFaqAllowed()) {
+          renderFaq(currentForumCode());
+        }
     }
 
     function populateForumOptions() {
@@ -1311,18 +1313,6 @@ function updateFaqTabState() {
       if (tg?.initDataUnsafe?.user && firstnameInp && !firstnameInp.value) {
         firstnameInp.value = tg.initDataUnsafe.user.first_name || '';
       }
-
-      if (hasStartParam()) {
-        renderFaq(currentForumCode() || CONFIG.FORUM_FIXED);
-        }
-      const faqAllowed = hasStartParam();
-
-        tabFaq.style.display = faqAllowed ? '' : 'none';
-        if (!faqAllowed) {
-          // на всякий случай — если кто-то уже был в FAQ
-          setTab('reg');
-          sectionFaq.classList.remove('active');
-        }
       updateFaqTabState();
     }
 
