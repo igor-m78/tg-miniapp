@@ -947,7 +947,7 @@ function updateFaqTabState() {
     
     function hasStartParam() {
       const url = new URL(location.href);
-      const urlForum = url.searchParams.get('forum') || url.searchParams.get('event');
+      const urlForum = url.searchParams.get('start_param') || url.searchParams.get('event');
       const sp = tg?.initDataUnsafe?.start_param;
       return Boolean((sp && String(sp).trim()) || (urlForum && String(urlForum).trim()));
     }
