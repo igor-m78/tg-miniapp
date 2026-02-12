@@ -809,20 +809,40 @@
     const errConsent = document.getElementById('ftErrConsent');
 
     // ===== Tabs =====
-    function setTab(which){
-      const isReg = which === 'reg';
-      tabReg.classList.toggle('active', isReg);
-      tabFaq.classList.toggle('active', !isReg);
-      sectionReg.classList.toggle('active', isReg);
-      sectionFaq.classList.toggle('active', !isReg);
-    }
-    tabReg.addEventListener('click', () => setTab('reg'));
-    tabFaq.addEventListener('click', () => {
-      if (!hasStartParam()) return; // FAQ недоступен
-      setTab('faq');
-      renderFaq(currentForumCode());
-    });
+function setTab(which){
+  const isReg = which === 'reg';
+  tabReg.classList.toggle('active', isReg);
+  tabFaq.classList.toggle('active', !isReg);
+  sectionReg.classList.toggle('active', isReg);
+  sectionFaq.classList.toggle('active', !isReg);
+}
 
+tabReg.addEventListener('click', () => setTab('reg'));
+
+tabFaq.addEventListener('click', () => {
+  if (!isFaqAllowed()) return;
+  setTab('faq');
+  renderFaq(currentForumCode());
+});
+
+// ===== FAQ lock/unlock =====
+function isFaqAllowed() {
+  // SOLO режим (пришел start_param / event=...) — FAQ доступен сразу
+  if (!CONFIG.IS_GENERAL_LANDING) return true;
+
+  // Общий режим — только после выбора форума в селекте
+  return Boolean(careerdaySel && careerdaySel.value);
+}
+
+function updateFaqTabState() {
+  const allowed = isFaqAllowed();
+  tabFaq.classList.toggle('disabled', !allowed);
+
+  // Если FAQ открыт, а форум не выбран — возвращаем на регистрацию
+  if (!allowed && sectionFaq.classList.contains('active')) {
+    setTab('reg');
+  }
+}
 
     // ====== Helpers ======
     function setError(el, text) {
@@ -999,6 +1019,7 @@
       toggleCustomFacultyField(false);
       updateStreamFinalValue();
       renderFaq(currentForumCode());
+      updateFaqTabState();
     }
 
     function populateForumOptions() {
@@ -1015,6 +1036,7 @@
 
       careerdaySel.onchange = function() {
         applyForumUI(this.value);
+        updateFaqTabState();
         loadedSheet = "";
         ensureVuzLoaded().catch(() => {});
       };
@@ -1301,7 +1323,7 @@
           setTab('reg');
           sectionFaq.classList.remove('active');
         }
-
+      updateFaqTabState();
     }
 
     // ====== Success / close ======
