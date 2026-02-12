@@ -2,957 +2,1423 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Регистрация</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>FutureToday — Регистрация</title>
 
-<link rel="stylesheet" href="./styles.css">
-  <!-- Важно: стили формы в исходнике могли быть на стороне Tilda/общего CSS.
-       Если на Pages "голый" вид — нужно добавить CSS отдельно. -->
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- FT FORM STYLES (из Tilda) + центрирование + вкладки -->
+  <style>
+  /* ===== Центрирование на всех устройствах ===== */
+  html, body { height: 100%; }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding: 16px;
+    box-sizing:border-box;
+    background: #ffffff;
+  }
+  /* На больших экранах даём воздуха сверху, но не по центру вертикально */
+  @media (min-width: 768px){
+    body{ padding-top: 28px; }
+  }
+
+  .app-wrap{
+    width: 100%;
+    max-width: 560px; /* совпадает с ft-form-universal */
+    margin: 0 auto;
+  }
+
+  /* ===== Верхняя навигация ===== */
+  .topbar{
+    display:flex;
+    gap:10px;
+    margin: 0 0 12px 0;
+  }
+  .tabbtn{
+    flex:1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    font: 500 15px/1.2 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor:pointer;
+  }
+  .tabbtn.active{
+    border-color: rgba(244,109,0,.55);
+    box-shadow: 0 0 0 3px rgba(244, 109, 0, 0.10);
+  }
+  .section{ display:none; }
+  .section.active{ display:block; }
+
+  /* ===== FAQ accordion ===== */
+  .faq-card{
+    padding: 20px;
+    background: #f7f7f7;
+    border-radius: 12px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-sizing: border-box;
+  }
+  .faq-title{
+    margin:0 0 14px 0;
+    font-size: 22px;
+    font-weight: 600;
+    color:#333;
+    text-align:center;
+  }
+  details{
+    background:#fff;
+    border: 1px solid #e7e7e7;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 10px 0;
+  }
+  summary{
+    cursor:pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color:#333;
+    list-style: none;
+  }
+  summary::-webkit-details-marker{ display:none; }
+  .faq-a{
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color:#555;
+    white-space: pre-line;
+  }
+  .faq-meta{
+    margin-top: 14px;
+    font-size: 13px;
+    color:#777;
+    text-align:center;
+  }
+  .faq-meta a{ color:#f46d00; text-decoration:none; }
+  .faq-meta a:hover{ text-decoration:underline; }
+
+  /* ====== FT FORM STYLES FOR GENERAL LANDING PAGE /events ===== */
+  /* Убираем фон у контейнера поп-апа в Tilda */
+  .t-popup_show .t-popup__container,
+  .t-popup_show .t-popup__content {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Анимация появления формы в поп-апе с якорем #popupRegistration */
+  .t-popup[data-popup-id="popupRegistration"] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .t-popup_show[data-popup-id="popupRegistration"] {
+    opacity: 1;
+  }
+  </style>
+
+  <style>
+  /* ========== ОСНОВНЫЕ СТИЛИ ФОРМЫ ========== */
+  #ft-form-universal {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px;
+      background-color: #f7f7f7;
+      border-radius: 12px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      box-sizing: border-box;
+      opacity: 1 !important; /* Переопределяем opacity из структурного блока */
+  }
+
+  #ft-form-universal .ft-form {
+      background-color: transparent;
+      padding: 0;
+      border-radius: 0;
+      border: none;
+  }
+
+  /* Заголовок формы */
+  #ft-form-universal .ft-success-heading {
+      text-align: center;
+      margin-bottom: 28px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 28px;
+      color: #333;
+      margin: 0 0 28px 0;
+      padding: 0;
+      line-height: 1.2;
+  }
+
+  /* Адаптивность для заголовка */
+  @media screen and (max-width: 600px) {
+      #ft-form-universal .ft-success-heading { font-size: 24px; }
+  }
+  @media screen and (max-width: 480px) {
+      #ft-form-universal .ft-success-heading { font-size: 22px; }
+  }
+
+  /* Адаптивность формы */
+  @media screen and (max-width: 600px) {
+      #ft-form-universal { padding: 24px 16px; max-width: 100%; }
+  }
+
+  /* ========== ПОЛЯ ФОРМЫ ========== */
+  #ft-form-universal .ft-field { margin-bottom: 16px; position: relative; }
+
+  #ft-form-universal label {
+      display: block;
+      margin-bottom: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #333;
+  }
+
+  /* Поля ввода */
+  #ft-form-universal input[type="text"],
+  #ft-form-universal input[type="email"],
+  #ft-form-universal input[type="tel"],
+  #ft-form-universal select {
+      width: 100%;
+      padding: 14px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.4;
+      color: #333;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      height: auto;
+  }
+
+  #ft-form-universal input:focus,
+  #ft-form-universal select:focus {
+      outline: none;
+      border-color: #f46d00;
+      box-shadow: 0 0 0 3px rgba(244, 109, 0, 0.1);
+  }
+
+  #ft-form-universal input::placeholder {
+      color: #999;
+      font-family: 'Inter', sans-serif;
+  }
+
+  /* Стили для выпадающих списков браузера */
+  #ft-form-universal select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23f46d00' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 20px;
+      padding-right: 50px !important;
+  }
+
+  /* Черный фон и белый текст для option в select */
+  #ft-form-universal select option {
+      background-color: #000000 !important;
+      color: #FFFFFF !important;
+      padding: 12px 16px;
+  }
+
+  #ft-form-universal option {
+      background-color: #000000;
+      color: #FFFFFF;
+      font-size: 15px;
+      padding: 12px;
+  }
+
+  /* ========== АВТОДОПОЛНЕНИЕ ВУЗОВ ========== */
+  #ft-form-universal .ft-autocomplete { position: relative; }
+
+  #ft-form-universal .ft-dropdown {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      z-index: 1000;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      max-height: 260px;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-top: 0;
+  }
+
+  #ft-form-universal .ft-dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-top: 1px solid #f0f0f0;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: background-color 0.2s;
+      color: #333;
+  }
+
+  #ft-form-universal .ft-dropdown-item:hover { background-color: rgba(244, 109, 0, 0.1); }
+
+  /* ========== ЧЕКБОКС СОГЛАСИЯ ========== */
+  #ft-form-universal #ftConsent {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      position: relative;
+      margin-top: 3px;
+      flex-shrink: 0;
+  }
+
+  #ft-form-universal #ftConsent:checked { background-color: #f46d00; border-color: #f46d00; }
+
+  #ft-form-universal #ftConsent:checked::after {
+      content: '✓';
+      position: absolute;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+  }
+
+  #ft-form-universal .ft-consent-label {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #555;
+      cursor: pointer;
+  }
+
+  #ft-form-universal .ft-consent-text a {
+      color: #f46d00;
+      text-decoration: none;
+      transition: color 0.2s;
+  }
+
+  #ft-form-universal .ft-consent-text a:hover { text-decoration: underline; }
+
+  /* ========== КНОПКА ОТПРАВКИ ========== */
+  #ft-form-universal .ft-button-container { display: block; width: 100%; }
+
+  #ft-form-universal .ft-submit-btn {
+      width: 100%;
+      padding: 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: white;
+      background: linear-gradient(135deg, #DB000E 0%, #FFB12C 100%);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      margin-top: 8px;
+      min-width: auto;
+  }
+
+  #ft-form-universal .ft-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(219, 0, 14, 0.3);
+  }
+  #ft-form-universal .ft-submit-btn:active { transform: translateY(0); }
+  #ft-form-universal .ft-submit-btn:disabled {
+      opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none;
+  }
+
+  /* ========== СООБЩЕНИЯ ОБ ОШИБКАХ ========== */
+  #ft-form-universal .ft-error {
+      display: none;
+      color: #c00;
+      font-size: 12px;
+      margin-top: 6px;
+      font-family: 'Inter', sans-serif;
+  }
+
+  /* ========== СООБЩЕНИЕ ОБ УСПЕХЕ ========== */
+  #ft-form-universal .ft-success-container {
+      background-color: #f7f7f7 !important;
+      border-radius: 12px;
+      padding: 32px;
+      border: none;
+  }
+
+  #ft-form-universal .ft-success-heading {
+      font-size: 28px;
+      color: #333 !important;
+      text-align: center;
+      margin-bottom: 24px;
+      font-weight: 600;
+  }
+
+  #ft-form-universal .ft-success-text {
+      font-size: 14px;
+      color: #555 !important;
+      line-height: 1.5;
+      text-align: center;
+      margin-bottom: 30px;
+  }
+
+  #ft-form-universal .ft-success-text a {
+      color: #f46d00 !important;
+      text-decoration: none;
+      font-weight: normal;
+  }
+  #ft-form-universal .ft-success-text a:hover { text-decoration: underline; }
+
+  #ft-form-universal .ft-close-btn {
+      padding: 16px;
+      color: white !important;
+      background: linear-gradient(135deg, #DB000E 0%, #FFB12C 100%) !important;
+      border: none !important;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: block;
+      width: 100%;
+      margin: 0 auto;
+      max-width: none;
+      min-width: auto;
+  }
+
+  #ft-form-universal .ft-close-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(219, 0, 14, 0.3);
+      background: linear-gradient(135deg, #DB000E 0%, #FFB12C 100%) !important;
+      color: white !important;
+  }
+
+  /* ========== СООБЩЕНИЕ ФОРМЫ ========== */
+  #ft-form-universal .ft-message {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+  }
+
+  /* ========== АДАПТИВНОСТЬ ========== */
+  @media screen and (max-width: 480px) {
+      #ft-form-universal { padding: 20px 12px; }
+      #ft-form-universal input, #ft-form-universal select { padding: 12px 14px; font-size: 16px; height: auto; }
+      #ft-form-universal .ft-submit-btn, #ft-form-universal .ft-close-btn { padding: 14px; font-size: 16px; }
+      #ft-form-universal label { font-size: 15px; }
+      #ft-form-universal .ft-consent-label { font-size: 12px; gap: 10px; }
+      #ft-form-universal .ft-success-heading { font-size: 22px; }
+      #ft-form-universal .ft-success-text { font-size: 13px; }
+  }
+
+  @media screen and (max-width: 360px) {
+      #ft-form-universal { padding: 16px 10px; }
+      #ft-form-universal .ft-submit-btn, #ft-form-universal .ft-close-btn { font-size: 15px; padding: 13px; }
+      #ft-form-universal .ft-success-heading { font-size: 20px; }
+  }
+
+  /* Подключение шрифта Inter */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  </style>
 </head>
 
 <body>
-
-<!-- ====== ТВОЯ ФОРМА (КАК В ФАЙЛЕ) ====== -->
-<!-- FT FORM CORE v2.4 - НЕ МЕНЯТЬ СТИЛИ В ЭТОМ ФАЙЛЕ -->
-<div class="page">
-  <div id="ft-form-universal" class="ft-form-core" style="opacity: 0; transition: opacity 0.5s ease;" data-popup="popupRegistration">
-
-  <!-- Форма регистрации -->
-  <form id="ftForm" class="ft-form" autocomplete="on" novalidate>
-    <!-- Имя -->
-    <div class="ft-field">
-      <label for="ftFirstname">Имя</label>
-      <input id="ftFirstname" name="firstname" type="text" required />
+  <div class="app-wrap">
+    <div class="topbar">
+      <button class="tabbtn active" id="tabReg" type="button">Регистрация</button>
+      <button class="tabbtn" id="tabFaq" type="button">FAQ</button>
     </div>
 
-    <!-- Email -->
-    <div class="ft-field">
-      <label for="ftEmail">Твой актуальный email (пришлем на него билет)</label>
-      <input id="ftEmail" name="email" type="email" required placeholder="name@example.com" />
-      <div class="ft-error" id="ftErrEmail"></div>
-    </div>
+    <section class="section active" id="sectionReg">
+      <!-- ====== ВАША ФОРМА 1-в-1 ====== -->
+      <div id="ft-form-universal" class="ft-form-core" data-popup="popupRegistration">
 
-    <!-- Телефон -->
-    <div class="ft-field">
-      <label for="ftPhone">Номер телефона</label>
-      <input id="ftPhone" name="mobteleph" type="tel" required placeholder="+79998887766" inputmode="tel" />
-      <div class="ft-error" id="ftErrPhone"></div>
-    </div>
+        <form id="ftForm" class="ft-form" autocomplete="on" novalidate>
+          <div class="ft-field">
+            <label for="ftFirstname">Имя</label>
+            <input id="ftFirstname" name="firstname" type="text" required />
+          </div>
 
-    <!-- Форум -->
-    <div class="ft-field" id="ftCareerdayWrap">
-      <label for="ftCareerday">На какой форум ты планируешь прийти?</label>
-      <select id="ftCareerday" name="careerday" required>
-        <option value="" selected disabled>Выберите форум</option>
-        <!-- Опции будут добавлены динамически -->
-      </select>
-    </div>
+          <div class="ft-field">
+            <label for="ftEmail">Твой актуальный email (пришлем на него билет)</label>
+            <input id="ftEmail" name="email" type="email" required placeholder="name@example.com" />
+            <div class="ft-error" id="ftErrEmail"></div>
+          </div>
 
-    <!-- ВУЗ -->
-    <div class="ft-field ft-autocomplete">
-      <label for="ftVuz">Текущее или последнее место учебы</label>
-      <input id="ftVuz" name="vuz_title" type="text" placeholder="Начните вводить..." autocomplete="off" />
-      <input type="hidden" id="ftVuzUnified" name="vuz_unified" value="" />
-      <div class="ft-dropdown" id="ftVuzDropdown" style="display: none;"></div>
-    </div>
+          <div class="ft-field">
+            <label for="ftPhone">Номер телефона</label>
+            <input id="ftPhone" name="mobteleph" type="tel" required placeholder="+79998887766" inputmode="tel" />
+            <div class="ft-error" id="ftErrPhone"></div>
+          </div>
 
-    <!-- КУРС -->
-    <div class="ft-field" id="ftYearWrap">
-      <label for="ftYear">На каком курсе ты обучаешься?</label>
-      <select id="ftYear" name="year_of_grad" required>
-        <option value="" selected disabled>Выберите</option>
-        <option>1 курс бакалавриата/специалитета</option>
-        <option>2 курс бакалавриата/специалитета</option>
-        <option>3 курс бакалавриата/специалитета</option>
-        <option>4 курс бакалавриата/специалитета</option>
-        <option>5 курс специалитета</option>
-        <option>1 курс магистратуры</option>
-        <option>2 курс магистратуры</option>
-        <option>выпускник(-ца)</option>
-        <option>другое</option>
-      </select>
-    </div>
+          <div class="ft-field" id="ftCareerdayWrap">
+            <label for="ftCareerday">На какой форум ты планируешь прийти?</label>
+            <select id="ftCareerday" name="careerday" required>
+              <option value="" selected disabled>Выберите форум</option>
+            </select>
+          </div>
 
-    <!-- ВОЗРАСТ -->
-    <div class="ft-field" id="ftAgeWrap" style="display:none;">
-      <label for="ftAge">Возраст</label>
-      <select id="ftAge" name="age">
-        <option value="" selected disabled>Выберите</option>
-        <option>16-17 лет</option>
-        <option>18-20 лет</option>
-        <option>21-23 года</option>
-        <option>24-27 лет</option>
-        <option>старше 27 лет</option>
-      </select>
-    </div>
+          <div class="ft-field ft-autocomplete">
+            <label for="ftVuz">Текущее или последнее место учебы</label>
+            <input id="ftVuz" name="vuz_title" type="text" placeholder="Начните вводить..." autocomplete="off" />
+            <input type="hidden" id="ftVuzUnified" name="vuz_unified" value="" />
+            <div class="ft-dropdown" id="ftVuzDropdown" style="display: none;"></div>
+          </div>
 
-    <!-- НАПРАВЛЕНИЕ -->
-    <div class="ft-field" id="ftStreamWrap">
-      <label for="ftStream" id="ftStreamLabel">На каком направлении обучаешься? Выбери самое близкое к факультету</label>
-      <select id="ftStream" name="stream" required></select>
-    </div>
+          <div class="ft-field" id="ftYearWrap">
+            <label for="ftYear">На каком курсе ты обучаешься?</label>
+            <select id="ftYear" name="year_of_grad" required>
+              <option value="" selected disabled>Выберите</option>
+              <option>1 курс бакалавриата/специалитета</option>
+              <option>2 курс бакалавриата/специалитета</option>
+              <option>3 курс бакалавриата/специалитета</option>
+              <option>4 курс бакалавриата/специалитета</option>
+              <option>5 курс специалитета</option>
+              <option>1 курс магистратуры</option>
+              <option>2 курс магистратуры</option>
+              <option>выпускник(-ца)</option>
+              <option>другое</option>
+            </select>
+          </div>
 
-    <!-- КАСТОМНЫЙ ФАКУЛЬТЕТ -->
-    <div class="ft-field" id="ftCustomFacultyWrap" style="display:none;">
-      <label for="ftCustomFaculty">Укажи, пожалуйста, свой факультет</label>
-      <input id="ftCustomFaculty" name="custom_faculty" type="text" placeholder="Например: Факультет компьютерных наук" />
-      <div class="ft-error" id="ftErrCustomFaculty"></div>
-    </div>
+          <div class="ft-field" id="ftAgeWrap" style="display:none;">
+            <label for="ftAge">Возраст</label>
+            <select id="ftAge" name="age">
+              <option value="" selected disabled>Выберите</option>
+              <option>16-17 лет</option>
+              <option>18-20 лет</option>
+              <option>21-23 года</option>
+              <option>24-27 лет</option>
+              <option>старше 27 лет</option>
+            </select>
+          </div>
 
-    <!-- Чекбокс согласия -->
-    <div class="ft-field">
-      <label class="ft-consent-label">
-        <input id="ftConsent" type="checkbox" required>
-        <span class="ft-consent-text">
-          Нажимая кнопку «Зарегистрироваться», Вы даёте согласие на
-          <a href="https://fut.ru/adv_messages_agreement" target="_blank" rel="noopener">рассылку</a>,
-          <a href="https://fut.ru/personal_data_agreement" target="_blank" rel="noopener">обработку персональных данных</a>,
-          условия <a href="https://fut.ru/user-agreement" target="_blank" rel="noopener">Пользовательского соглашения</a>,
-          <a href="https://fut.ru/personal-data" target="_blank" rel="noopener">Политики обработки персональных данных</a>
-          и <a href="https://doc.fut.ru/media/2024/06/events_agreement.pdf" target="_blank" rel="noopener">Правила посещения Дня Карьеры</a>.
-        </span>
-      </label>
-      <div class="ft-error" id="ftErrConsent"></div>
-    </div>
+          <div class="ft-field" id="ftStreamWrap">
+            <label for="ftStream" id="ftStreamLabel">На каком направлении обучаешься? Выбери самое близкое к факультету</label>
+            <select id="ftStream" name="stream" required></select>
+          </div>
 
-    <!-- Скрытые поля -->
-    <input type="hidden" id="ftLandingType" name="landing_type" value="">
-    <input type="hidden" id="ftFormSource" name="form_source" value="tilda_html">
-    <input type="hidden" id="ftStreamFinal" name="stream_final" value="">
+          <div class="ft-field" id="ftCustomFacultyWrap" style="display:none;">
+            <label for="ftCustomFaculty">Укажи, пожалуйста, свой факультет</label>
+            <input id="ftCustomFaculty" name="custom_faculty" type="text" placeholder="Например: Факультет компьютерных наук" />
+            <div class="ft-error" id="ftErrCustomFaculty"></div>
+          </div>
 
-    <!-- Кнопка отправки -->
-    <div class="ft-button-container">
-      <button id="ftSubmitBtn" class="ft-submit-btn" type="submit">Зарегистрироваться</button>
-    </div>
+          <div class="ft-field">
+            <label class="ft-consent-label">
+              <input id="ftConsent" type="checkbox" required>
+              <span class="ft-consent-text">
+                Нажимая кнопку «Зарегистрироваться», Вы даёте согласие на
+                <a href="https://fut.ru/adv_messages_agreement" target="_blank" rel="noopener">рассылку</a>,
+                <a href="https://fut.ru/personal_data_agreement" target="_blank" rel="noopener">обработку персональных данных</a>,
+                условия <a href="https://fut.ru/user-agreement" target="_blank" rel="noopener">Пользовательского соглашения</a>,
+                <a href="https://fut.ru/personal-data" target="_blank" rel="noopener">Политики обработки персональных данных</a>
+                и <a href="https://doc.fut.ru/media/2024/06/events_agreement.pdf" target="_blank" rel="noopener">Правила посещения Дня Карьеры</a>.
+              </span>
+            </label>
+            <div class="ft-error" id="ftErrConsent"></div>
+          </div>
 
-    <!-- Сообщение формы -->
-    <div class="ft-message" id="ftFormMsg"></div>
-  </form>
+          <input type="hidden" id="ftLandingType" name="landing_type" value="">
+          <input type="hidden" id="ftFormSource" name="form_source" value="telegram_webapp">
+          <input type="hidden" id="ftStreamFinal" name="stream_final" value="">
 
-  <!-- Сообщение об успехе -->
-  <div class="ft-success-container" id="ftSuccessContainer" style="display:none;">
-    <div class="ft-success-message">
-      <div class="ft-success-title">
-        <h2 class="ft-success-heading">ПОЛУЧИЛИ ТВОЮ РЕГИСТРАЦИЮ</h2>
+          <div class="ft-button-container">
+            <button id="ftSubmitBtn" class="ft-submit-btn" type="submit">Зарегистрироваться</button>
+          </div>
+
+          <div class="ft-message" id="ftFormMsg"></div>
+        </form>
+
+        <div class="ft-success-container" id="ftSuccessContainer" style="display:none;">
+          <div class="ft-success-message">
+            <div class="ft-success-title">
+              <h2 class="ft-success-heading">ПОЛУЧИЛИ ТВОЮ РЕГИСТРАЦИЮ</h2>
+            </div>
+            <div class="ft-success-text" id="ftSuccessText"></div>
+            <div class="ft-button-container">
+              <button class="ft-close-btn" id="ftCloseSuccessBtn">Закрыть</button>
+            </div>
+          </div>
+        </div>
+
       </div>
+    </section>
 
-      <div class="ft-success-text" id="ftSuccessText"></div>
-
-      <div class="ft-button-container">
-        <button class="ft-close-btn" id="ftCloseSuccessBtn">Закрыть</button>
+    <section class="section" id="sectionFaq">
+      <div class="faq-card">
+        <h2 class="faq-title" id="faqTitle">FAQ</h2>
+        <div id="faqList"></div>
+        <div class="faq-meta" id="faqMeta"></div>
       </div>
-    </div>
-  </div>
-</div>
+    </section>
   </div>
 
-<!-- Telegram WebApp SDK -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+  // ====== MINIAPP (форма + FAQ) ======
+  (function(){
+    'use strict';
 
-<script>
-// ====== FT FORM CORE v2.4 + Telegram адаптация ======
-(function(){
-  'use strict';
-
-  // Telegram init (не ломает работу в обычном браузере)
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.ready();
-    tg.expand();
-  }
-
-  // ================== КОНФИГУРАЦИЯ ==================
-  const CONFIG = {
-    API_BASE: "https://functions.yandexcloud.net/d4eajagq70ar2qug7ar5",
-    IS_GENERAL_LANDING: true,
-    LANDING_TYPE_GENERAL: "all_events",
-    FORUM_FIXED: "ПФМ",
-    SPREADSHEET_ID: "16a3MSd-b8F2T1EbwaFVBMyPmF5oat9UUajK3VytQuis",
-    DOV_HIDE_STREAM: true,
-    VUZ_MIN_CHARS: 2,
-    VUZ_SUGGEST_LIMIT: 20
-  };
-
-  const SHEETS = {
-    MSK_VUZ:  "МСК вузы",
-    SPB_VUZ:  "СПБ вузы",
-    MSK_SSUZ: "МСК ссузы",
-    NSK_VUZ:  "НСК вузы",
-  };
-
-  const STREAMS = {
-    PF: [
-      "финансы / экономика",
-      "консалтинг / аудит / бухгалтерский учет",
-      "страхование",
-      "налогообложение",
-      "финансовая аналитика",
-      "менеджмент / управление / HR",
-      "юриспруденция",
-      "маркетинг и медиа (реклама, SEO, SMM)",
-      "инвестиции и предпринимательство",
-      "международные отношения",
-      "другое"
-    ],
-    NIT: [
-      "программирование / разработка ПО",
-      "веб-разработка",
-      "мобильная разработка",
-      "Data Science / ML / AI",
-      "кибербезопасность",
-      "DevOps / системное администрирование",
-      "тестирование (QA)",
-      "анализ данных",
-      "дизайн (UI/UX)",
-      "продукт-менеджмент",
-      "другое"
-    ],
-    TCM: [
-      "инженерное дело",
-      "машиностроение",
-      "строительство",
-      "электротехника",
-      "робототехника",
-      "биотехнологии",
-      "нанотехнологии",
-      "автоматизация",
-      "проектирование",
-      "технический контроль",
-      "другое"
-    ],
-    DOV: [
-      "менеджмент",
-      "административная работа",
-      "продажи",
-      "клиентский сервис",
-      "маркетинг",
-      "реклама",
-      "дизайн",
-      "IT",
-      "финансы",
-      "юриспруденция",
-      "другое"
-    ]
-  };
-
-  const FORUM_NAMES_WITH_DATES = {
-    'ПФМ': 'ProFinance в Москве 11 марта',
-    'НИТМ': 'Найти IT в Москве 12 марта',
-    'ТСМ': 'TechnoCareer в Москве 21 марта',
-    'ПФС': 'ProFinance в Санкт-Петербурге 3 апреля',
-    'НИТС': 'Найти IT в Санкт-Петербурге 4 апреля',
-    'НИТН': 'Найти IT в Новосибирске 14 апреля',
-    'ДОВ': 'День открытых вакансий в Москве 27 апреля'
-  };
-
-  const TG_CHANNELS = {
-    'ПФМ': { text: '@ft_profinance', url: 'https://t.me/ft_profinance' },
-    'НИТМ': { text: '@findit_msk', url: 'https://t.me/findit_msk' },
-    'ТСМ': { text: '@technocareer', url: 'https://t.me/technocareer' },
-    'ПФС': { text: '@profinance_spb', url: 'https://t.me/profinance_spb' },
-    'НИТС': { text: '@findit_spb', url: 'https://t.me/findit_spb' },
-    'НИТН': { text: '@findit_nsk', url: 'https://t.me/findit_nsk' },
-    'ДОВ': { text: '@fut_vacancyday', url: 'https://t.me/fut_vacancyday' }
-  };
-
-  // ====== DOM ======
-  const formCore = document.getElementById('ft-form-universal');
-  const form = document.getElementById('ftForm');
-  const successContainer = document.getElementById('ftSuccessContainer');
-  const closeSuccessBtn = document.getElementById('ftCloseSuccessBtn');
-  const successText = document.getElementById('ftSuccessText');
-
-  const firstnameInp = document.getElementById('ftFirstname');
-  const emailInp = document.getElementById('ftEmail');
-  const phoneInp = document.getElementById('ftPhone');
-  const careerdayWrap = document.getElementById('ftCareerdayWrap');
-  const careerdaySel = document.getElementById('ftCareerday');
-  const vuzInp = document.getElementById('ftVuz');
-  const vuzUnifiedInp = document.getElementById('ftVuzUnified');
-  const vuzDropdown = document.getElementById('ftVuzDropdown');
-  const yearWrap = document.getElementById('ftYearWrap');
-  const ageWrap = document.getElementById('ftAgeWrap');
-  const yearSel = document.getElementById('ftYear');
-  const ageSel = document.getElementById('ftAge');
-  const streamWrap = document.getElementById('ftStreamWrap');
-  const streamLabel = document.getElementById('ftStreamLabel');
-  const streamSel = document.getElementById('ftStream');
-  const customFacultyWrap = document.getElementById('ftCustomFacultyWrap');
-  const customFacultyInp = document.getElementById('ftCustomFaculty');
-  const errCustomFaculty = document.getElementById('ftErrCustomFaculty');
-  const streamFinalInp = document.getElementById('ftStreamFinal');
-  const consentChk = document.getElementById('ftConsent');
-  const submitBtn = document.getElementById('ftSubmitBtn');
-  const formMsg = document.getElementById('ftFormMsg');
-  const landingTypeInp = document.getElementById('ftLandingType');
-
-  const errEmail = document.getElementById('ftErrEmail');
-  const errPhone = document.getElementById('ftErrPhone');
-  const errConsent = document.getElementById('ftErrConsent');
-
-  // На GitHub Pages не должно быть "белого экрана"
-  setTimeout(() => { if (formCore) formCore.style.opacity = '1'; }, 50);
-
-  // Telegram: автоподстановка имени (если пусто)
-  if (tg?.initDataUnsafe?.user && firstnameInp && !firstnameInp.value) {
-    firstnameInp.value = tg.initDataUnsafe.user.first_name || '';
-  }
-
-  // ====== UTILS ======
-  function setError(el, text) {
-    if (!el) return;
-    el.style.display = text ? 'block' : 'none';
-    el.textContent = text || '';
-  }
-
-  function normalizePhone(raw) {
-    let s = (raw || '').trim().replace(/[^\d+]/g, '');
-    if (/^8\d{10}$/.test(s)) s = '+7' + s.slice(1);
-    if (/^7\d{10}$/.test(s)) s = '+7' + s;
-    return s;
-  }
-
-  function isValidPhone(s) { return /^\+7\d{10}$/.test(s); }
-  function isValidEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim()); }
-
-  function toggleCustomFacultyField(show) {
-    if (!customFacultyWrap) return;
-    customFacultyWrap.style.display = show ? 'block' : 'none';
-    if (!show) {
-      customFacultyInp.value = '';
-      setError(errCustomFaculty, '');
-    }
-  }
-
-  function updateStreamFinalValue() {
-    const streamValue = streamSel.value;
-    if (streamValue === 'другое') {
-      const customValue = (customFacultyInp.value || '').trim();
-      streamFinalInp.value = customValue ? customValue : 'другое';
-    } else {
-      streamFinalInp.value = streamValue;
-    }
-  }
-
-  function getForumNameWithoutDate(code) {
-    const fullName = FORUM_NAMES_WITH_DATES[code] || code;
-    return fullName.replace(/\s\d+\s[а-я]+$/, '');
-  }
-
-  function getTgChannel(code) {
-    return TG_CHANNELS[code] || TG_CHANNELS['НИТМ'];
-  }
-
-  function generateSuccessText(forumCode) {
-    const forumName = getForumNameWithoutDate(forumCode);
-    const tgChannel = getTgChannel(forumCode);
-
-    return `Получили твою регистрацию на ${forumName}.<br>
-            Отправим письмо с билетом на указанную тобой почту.<br>
-            Если не увидишь его, проверь спам и промоакции — иногда письмо улетает туда (особенно актуально для Gmail-почт).<br><br>
-
-            А еще подписывайся на наш ТГ <a href="${tgChannel.url}" class="ft-tg-link" target="_blank" rel="noopener">${tgChannel.text}</a> — там все актуальности.<br>
-            Связь с организаторов: <a href="mailto:careerday@futuretoday.ru" class="ft-email-link">careerday@futuretoday.ru</a> или <a href="https://t.me/careerday_help" class="ft-help-link" target="_blank" rel="noopener">@careerday_help</a>`;
-  }
-
-  // ====== SUCCESS / CLOSE ======
-  function showSuccessMessage() {
-    const forumCode = CONFIG.IS_GENERAL_LANDING ? careerdaySel.value : CONFIG.FORUM_FIXED;
-    successText.innerHTML = generateSuccessText(forumCode);
-
-    form.style.display = 'none';
-    successContainer.style.display = 'block';
-
-    setTimeout(() => {
-      formCore.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  }
-
-  function closeSuccess(e) {
-    e?.preventDefault?.();
-
-    // В Telegram закрываем WebApp
+    // ===== Telegram init =====
+    const tg = window.Telegram?.WebApp;
     if (tg) {
-      tg.close();
-      return;
+      tg.ready();
+      tg.expand();
+      // Подстраиваем фон/текст под тему Telegram (если задано)
+      if (tg.themeParams?.bg_color) document.body.style.background = tg.themeParams.bg_color;
+      if (tg.themeParams?.text_color) document.body.style.color = tg.themeParams.text_color;
     }
 
-    // В браузере просто сбросим форму
-    successContainer.style.display = 'none';
-    form.style.display = 'block';
-    form.reset();
+    // ================== КОНФИГУРАЦИЯ ==================
+    const CONFIG = {
+      API_BASE: "https://functions.yandexcloud.net/d4eajagq70ar2qug7ar5",
+      IS_GENERAL_LANDING: true,
+      LANDING_TYPE_GENERAL: "all_events",
+      FORUM_FIXED: "ПФМ",
+      SPREADSHEET_ID: "16a3MSd-b8F2T1EbwaFVBMyPmF5oat9UUajK3VytQuis",
+      DOV_HIDE_STREAM: true,
+      VUZ_MIN_CHARS: 2,
+      VUZ_SUGGEST_LIMIT: 20
+    };
 
-    vuzUnifiedInp.value = '';
-    if (vuzDropdown) { vuzDropdown.style.display = 'none'; vuzDropdown.innerHTML = ''; }
-    toggleCustomFacultyField(false);
-    streamFinalInp.value = '';
-  }
+    // Google Sheets
+    const SHEETS = {
+      MSK_VUZ:  "МСК вузы",
+      SPB_VUZ:  "СПБ вузы",
+      MSK_SSUZ: "МСК ссузы",
+      NSK_VUZ:  "НСК вузы",
+    };
 
-  if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', closeSuccess);
+    // Направления (как у вас)
+    const STREAMS = {
+      PF: [
+        "финансы / экономика",
+        "консалтинг / аудит / бухгалтерский учет",
+        "страхование",
+        "налогообложение",
+        "финансовая аналитика",
+        "менеджмент / управление / HR",
+        "юриспруденция",
+        "маркетинг и медиа (реклама, SEO, SMM)",
+        "инвестиции и предпринимательство",
+        "международные отношения",
+        "другое"
+      ],
+      NIT: [
+        "программирование / разработка ПО",
+        "веб-разработка",
+        "мобильная разработка",
+        "Data Science / ML / AI",
+        "кибербезопасность",
+        "DevOps / системное администрирование",
+        "тестирование (QA)",
+        "анализ данных",
+        "дизайн (UI/UX)",
+        "продукт-менеджмент",
+        "другое"
+      ],
+      TCM: [
+        "инженерное дело",
+        "машиностроение",
+        "строительство",
+        "электротехника",
+        "робототехника",
+        "биотехнологии",
+        "нанотехнологии",
+        "автоматизация",
+        "проектирование",
+        "технический контроль",
+        "другое"
+      ],
+      DOV: [
+        "менеджмент",
+        "административная работа",
+        "продажи",
+        "клиентский сервис",
+        "маркетинг",
+        "реклама",
+        "дизайн",
+        "IT",
+        "финансы",
+        "юриспруденция",
+        "другое"
+      ]
+    };
 
-  // ====== LANDING TYPE ======
-  const landingTypeByPath = [
-    { contains: "/profinance_msk_new", value: "pfm_new" },
-    { contains: "/profinance_msk_test", value: "pfm_test" },
-    { contains: "/profinance_msk", value: "pfm_old" },
-    { contains: "/page114528496", value: "pfm_dev" },
-    { contains: "/profinance_spb_new", value: "pfs_new" },
-    { contains: "/profinance_spb", value: "pfs_old" },
-    { contains: "/findit_msk_new", value: "nitm_new" },
-    { contains: "/findit_msk_test", value: "nitm_test" },
-    { contains: "/findit_msk", value: "nitm_old" },
-    { contains: "/findit_spb_new", value: "nits_new" },
-    { contains: "/findit_spb_test", value: "nits_test" },
-    { contains: "/findit_spb", value: "nits_old" },
-    { contains: "/findit_nsk_new", value: "nitn_new" },
-    { contains: "/findit_nsk_test", value: "nitn_test" },
-    { contains: "/findit_nsk", value: "nitn_old" },
-    { contains: "/technocareer_msk_new", value: "tcm_new" },
-    { contains: "/technocareer_msk_test", value: "tcm_test" },
-    { contains: "/technocareer_msk", value: "tcm_old" },
-    { contains: "/vacancyday_new", value: "dov_new" },
-    { contains: "/vacancyday_test", value: "dov_test" },
-    { contains: "/vacancyday", value: "dov_old" },
-  ];
+    // Названия форумов (как у вас)
+    const FORUM_NAMES_WITH_DATES = {
+      'ПФМ': 'ProFinance в Москве 11 марта',
+      'НИТМ': 'Найти IT в Москве 12 марта',
+      'ТСМ': 'TechnoCareer в Москве 21 марта',
+      'ПФС': 'ProFinance в Санкт-Петербурге 3 апреля',
+      'НИТС': 'Найти IT в Санкт-Петербурге 4 апреля',
+      'НИТН': 'Найти IT в Новосибирске 14 апреля',
+      'ДОВ': 'День открытых вакансий в Москве 27 апреля'
+    };
 
-  function detectLandingType() {
-    const path = (location.pathname || "").toLowerCase();
-    const hit = landingTypeByPath.find(x => path.includes(x.contains));
-    return hit ? hit.value : "";
-  }
+    // ТГ каналы (как у вас)
+    const TG_CHANNELS = {
+      'ПФМ': { text: '@ft_profinance', url: 'https://t.me/ft_profinance' },
+      'НИТМ': { text: '@findit_msk', url: 'https://t.me/findit_msk' },
+      'ТСМ': { text: '@technocareer', url: 'https://t.me/technocareer' },
+      'ПФС': { text: '@profinance_spb', url: 'https://t.me/profinance_spb' },
+      'НИТС': { text: '@findit_spb', url: 'https://t.me/findit_spb' },
+      'НИТН': { text: '@findit_nsk', url: 'https://t.me/findit_nsk' },
+      'ДОВ': { text: '@fut_vacancyday', url: 'https://t.me/fut_vacancyday' }
+    };
 
-  // ====== FORUM UI ======
-  function forumToKey(cd) {
-    if (cd === "ПФМ" || cd === "ПФС") return "PF";
-    if (cd === "НИТМ" || cd === "НИТС" || cd === "НИТН") return "NIT";
-    if (cd === "ТСМ") return "TCM";
-    if (cd === "ДОВ") return "DOV";
-    return "PF";
-  }
+    // ===== FAQ data =====
+    // ВАЖНО: ответы ниже сохранены по смыслу (для миниаппа) и отсылают на первоисточник (страницы мероприятий).
+    const FAQ_PAGES = {
+      'ДОВ': 'https://careerday.fut.ru/vacancyday',
+      'ТСМ': 'https://careerday.fut.ru/technocareer',
+      'ПФМ': 'https://careerday.fut.ru/profinance_msk',
+      'НИТМ': 'https://careerday.fut.ru/findit_msk',
+      'ПФС': 'https://careerday.fut.ru/profinance_spb',
+      'НИТС': 'https://careerday.fut.ru/findit_spb',
+      'НИТН': 'https://careerday.fut.ru/findit_nsk'
+    };
 
-  function applyForumUI(cd) {
-    const key = forumToKey(cd);
+    const FAQ_DATA = {
+      'ПФМ': [
+        { q: 'Что такое ProFinance?', a: 'Карьерный форум с работодателями (вакансии и стажировки) для студентов и выпускников бизнес-направлений: можно оставить отклик, пообщаться с HR и руководителями, получить фидбэк по резюме и навыкам.' },
+        { q: 'Я могу найти вакансии в TG-каналах. Зачем идти на форум?', a: 'На форуме собраны представители десятков компаний в одном месте: проще познакомиться с работодателями и найти “свою” компанию, а не искать по одному.' },
+        { q: 'Как попасть на ProFinance?', a: 'Нужно зарегистрироваться, получить билет и прийти на площадку в дату и время форума.' },
+        { q: 'У меня пары / не успеваю к началу. Что делать?', a: 'Можно прийти позже — в течение времени работы форума.' },
+        { q: 'Хочу позвать друзей. Есть бонусы?', a: 'Есть реферальная механика: за приглашения предусмотрены призы (например, пицца/сертификаты) и суперприз для лидера.' },
+        { q: 'Форум идёт несколько часов. Чем заняться всё это время?', a: 'Стенды компаний, общение с HR/руководителями, активности и розыгрыши — программа рассчитана на несколько часов без “пустого” времени.' },
+      ],
+      'ПФС': [
+        { q: 'Что такое ProFinance?', a: 'Карьерный форум с работодателями и карьерными активностями для студентов и выпускников бизнес-специальностей.' },
+        { q: 'Зачем идти, если есть вакансии онлайн?', a: 'Площадка даёт живое общение и быстрый контакт с компаниями: можно поговорить и понять “мэтч” на месте.' },
+        { q: 'Как попасть на ProFinance?', a: 'Зарегистрироваться, получить билет и прийти на площадку в дату и время форума.' },
+        { q: 'Если не успеваю к началу?', a: 'Можно прийти позже в пределах времени проведения.' },
+        { q: 'Хочу позвать друзей. Есть призы?', a: 'Работает реферальная программа с призами за приглашения и суперпризом за лучший результат.' },
+        { q: 'Чем заняться на форуме несколько часов?', a: 'Стенды компаний, разговоры с HR/руководителями, активности и розыгрыши.' },
+      ],
+      'НИТМ': [
+        { q: 'Что такое Найти IT?', a: 'Карьерный форум с работодателями (вакансии и стажировки) для студентов и выпускников IT-направлений: отклики, общение с HR и руководителями, фидбэк по резюме и навыкам.' },
+        { q: 'Зачем идти на форум, если вакансии есть в TG?', a: 'На форуме собраны представители многих компаний сразу: легче познакомиться и найти подходящую по “духу” команду.' },
+        { q: 'Как попасть на Найти IT?', a: 'Зарегистрироваться, получить билет и прийти на площадку в дату и время форума.' },
+        { q: 'У меня пары / не успеваю к началу. Что делать?', a: 'Можно прийти позже — в любое время работы форума.' },
+        { q: 'Можно прийти с друзьями? Есть бонусы?', a: 'Да: реферальные призы за приглашения и суперприз для того, кто приведёт больше всех.' },
+        { q: 'Форум длится несколько часов. Что делать всё это время?', a: 'Стенды, общение со спикерами/HR/руководителями, конкурсы и розыгрыши.' },
+      ],
+      'НИТС': [
+        { q: 'Что такое Найти IT?', a: 'Карьерный форум с работодателями (вакансии и стажировки) для студентов и выпускников IT-направлений.' },
+        { q: 'Зачем идти на форум, если вакансии есть в TG?', a: 'Плюс форума — много компаний в одном месте, можно быстро “пощупать” разные команды и найти мэтч.' },
+        { q: 'Как попасть на Найти IT?', a: 'Зарегистрироваться, получить билет и прийти на площадку в дату и время форума.' },
+        { q: 'Если не успеваю к началу?', a: 'Можно приходить в любое время в пределах расписания.' },
+        { q: 'Хочу позвать друзей. Есть бонусы?', a: 'Есть призы за приглашения (пицца/сертификаты) и суперпризы за лучший результат.' },
+        { q: 'Что делать на форуме несколько часов?', a: 'Стенды, общения с HR/руководителями, конкурсы, розыгрыши и карьерные активности.' },
+      ],
+      'НИТН': [
+        { q: 'Что такое Найти IT?', a: 'Карьерный форум с работодателями (вакансии и стажировки) для студентов и выпускников IT-направлений.' },
+        { q: 'Зачем идти на форум, если вакансии есть в TG?', a: 'На форуме уже собраны компании — проще пообщаться и найти подходящую команду.' },
+        { q: 'Как попасть на Найти IT?', a: 'Зарегистрироваться, получить билет и прийти на площадку в дату и время форума.' },
+        { q: 'Если не успеваю к началу?', a: 'Можно приходить позже в пределах времени проведения.' },
+        { q: 'Можно прийти с друзьями? Есть призы?', a: 'Да: реферальные призы за приглашения и суперприз для лидера.' },
+        { q: 'Форум длится несколько часов. Чем заняться?', a: 'Стенды компаний, активности и возможность за несколько часов познакомиться с работодателями.' },
+      ],
+      'ТСМ': [
+        { q: 'Для кого TechnoCareer?', a: 'Для молодых специалистов технических направлений: инженерия, физика, химия, нефтегаз/энергетика, строительство, машиностроение и др.' },
+        { q: 'Как попасть на TechnoCareer?', a: 'Зарегистрироваться, получить билет и прийти на площадку в дату и время форума.' },
+        { q: 'Билет бесплатный?', a: 'Да. После регистрации на почту приходит билет/проходка.' },
+        { q: 'Зачем идти офлайн, если есть сайты и TG с вакансиями?', a: 'Можно за один визит пообщаться с представителями многих компаний и получить то, что не всегда есть онлайн (контакт, инсайты, мерч/активности).' },
+        { q: 'Если не успеваю к началу?', a: 'Можно прийти позже — в любое время работы мероприятия.' },
+        { q: 'Можно ли приходить с друзьями?', a: 'Да, и есть реферальная механика с призами за приглашения.' },
+      ],
+      'ДОВ': [
+        { q: 'Что такое «День открытых вакансий и подработок»?', a: 'Карьерный форум с работодателями и вакансиями/подработками для молодёжи (включая 16+): можно пройти несколько собеседований и получить оффер.' },
+        { q: 'Зачем идти, если есть сайты с вакансиями?', a: 'На площадке всё быстрее: за пару часов можно пройти несколько экспресс-собеседований и получить результат без долгого ожидания.' },
+        { q: 'Какие вакансии будут?', a: 'Разные массовые позиции (например, продавец-консультант, мерчендайзер, администратор, клиентский менеджер и др.). Подробности — на стендах.' },
+        { q: 'Как проходят собеседования?', a: 'Подходишь к стендам, узнаёшь условия, проходишь интервью; уточняешь, когда будет фидбэк; при удачном мэтче можно получить оффер.' },
+        { q: 'Какие требования на вакансии?', a: 'Главное — пройти собеседование. Обычно опыт/образование не критичны; детали уточняются у работодателей на месте.' },
+        { q: 'Как попасть на ивент? Это бесплатно?', a: 'Заполняешь форму, получаешь бесплатный билет на почту и приходишь на площадку.' },
+        { q: 'У меня пары / не успеваю к началу. Что делать?', a: 'Можно прийти позже в пределах времени проведения (учитывая ограничения последнего часа, если они указаны на странице форума).' },
+        { q: 'Нужно ли готовиться к форуму?', a: 'Обычно специальной подготовки не требуется: вакансии предполагают старт без опыта, детали — у работодателей.' },
+        { q: 'Что делать, если в FAQ нет ответа?', a: 'Написать в поддержку Telegram @careerday_help или на почту careerday@futuretoday.ru.' },
+      ]
+    };
 
-    if (cd === "ДОВ") {
-      yearWrap.style.display = "none";
-      yearSel.required = false;
+    // ====== DOM ======
+    const tabReg = document.getElementById('tabReg');
+    const tabFaq = document.getElementById('tabFaq');
+    const sectionReg = document.getElementById('sectionReg');
+    const sectionFaq = document.getElementById('sectionFaq');
 
-      ageWrap.style.display = "block";
+    const faqTitle = document.getElementById('faqTitle');
+    const faqList = document.getElementById('faqList');
+    const faqMeta = document.getElementById('faqMeta');
 
-      if (CONFIG.DOV_HIDE_STREAM) {
-        streamWrap.style.display = "none";
-        streamSel.required = false;
-        toggleCustomFacultyField(false);
+    const formCore = document.getElementById('ft-form-universal');
+    const form = document.getElementById('ftForm');
+    const successContainer = document.getElementById('ftSuccessContainer');
+    const closeSuccessBtn = document.getElementById('ftCloseSuccessBtn');
+    const successText = document.getElementById('ftSuccessText');
+
+    const firstnameInp = document.getElementById('ftFirstname');
+    const emailInp = document.getElementById('ftEmail');
+    const phoneInp = document.getElementById('ftPhone');
+    const careerdayWrap = document.getElementById('ftCareerdayWrap');
+    const careerdaySel = document.getElementById('ftCareerday');
+    const vuzInp = document.getElementById('ftVuz');
+    const vuzUnifiedInp = document.getElementById('ftVuzUnified');
+    const vuzDropdown = document.getElementById('ftVuzDropdown');
+    const yearWrap = document.getElementById('ftYearWrap');
+    const ageWrap = document.getElementById('ftAgeWrap');
+    const yearSel = document.getElementById('ftYear');
+    const ageSel = document.getElementById('ftAge');
+    const streamWrap = document.getElementById('ftStreamWrap');
+    const streamLabel = document.getElementById('ftStreamLabel');
+    const streamSel = document.getElementById('ftStream');
+    const customFacultyWrap = document.getElementById('ftCustomFacultyWrap');
+    const customFacultyInp = document.getElementById('ftCustomFaculty');
+    const errCustomFaculty = document.getElementById('ftErrCustomFaculty');
+    const streamFinalInp = document.getElementById('ftStreamFinal');
+    const consentChk = document.getElementById('ftConsent');
+    const submitBtn = document.getElementById('ftSubmitBtn');
+    const formMsg = document.getElementById('ftFormMsg');
+    const landingTypeInp = document.getElementById('ftLandingType');
+
+    const errEmail = document.getElementById('ftErrEmail');
+    const errPhone = document.getElementById('ftErrPhone');
+    const errConsent = document.getElementById('ftErrConsent');
+
+    // ===== Tabs =====
+    function setTab(which){
+      const isReg = which === 'reg';
+      tabReg.classList.toggle('active', isReg);
+      tabFaq.classList.toggle('active', !isReg);
+      sectionReg.classList.toggle('active', isReg);
+      sectionFaq.classList.toggle('active', !isReg);
+    }
+    tabReg.addEventListener('click', () => setTab('reg'));
+    tabFaq.addEventListener('click', () => { setTab('faq'); renderFaq(currentForumCode()); });
+
+    // ====== Helpers ======
+    function setError(el, text) {
+      if (!el) return;
+      el.style.display = text ? 'block' : 'none';
+      el.textContent = text || '';
+    }
+
+    function normalizePhone(raw) {
+      let s = (raw || '').trim().replace(/[^\d+]/g, '');
+      if (/^8\d{10}$/.test(s)) s = '+7' + s.slice(1);
+      if (/^7\d{10}$/.test(s)) s = '+7' + s;
+      return s;
+    }
+    function isValidPhone(s) { return /^\+7\d{10}$/.test(s); }
+    function isValidEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim()); }
+
+    function getForumName(code) {
+      return FORUM_NAMES_WITH_DATES[code] || code;
+    }
+    function getForumNameWithoutDate(code) {
+      const fullName = FORUM_NAMES_WITH_DATES[code] || code;
+      return fullName.replace(/\s\d+\s[а-я]+$/, '');
+    }
+    function getTgChannel(code) {
+      return TG_CHANNELS[code] || TG_CHANNELS['НИТМ'];
+    }
+
+    function generateSuccessText(forumCode) {
+      const forumName = getForumNameWithoutDate(forumCode);
+      const tgChannel = getTgChannel(forumCode);
+      return `Получили твою регистрацию на ${forumName}.<br>
+              Отправим письмо с билетом на указанную тобой почту.<br>
+              Если не увидишь его, проверь спам и промоакции — иногда письмо улетает туда.<br><br>
+              А ещё подписывайся на наш ТГ <a href="${tgChannel.url}" class="ft-tg-link" target="_blank" rel="noopener">${tgChannel.text}</a> — там все актуальности.<br>
+              Связь с организаторами: <a href="mailto:careerday@futuretoday.ru" class="ft-email-link">careerday@futuretoday.ru</a> или <a href="https://t.me/careerday_help" class="ft-help-link" target="_blank" rel="noopener">@careerday_help</a>`;
+    }
+
+    // ===== Stream custom field =====
+    function toggleCustomFacultyField(show) {
+      if (!customFacultyWrap) return;
+      customFacultyWrap.style.display = show ? 'block' : 'none';
+      if (!show) {
+        customFacultyInp.value = '';
+        setError(errCustomFaculty, '');
+      }
+    }
+    function updateStreamFinalValue() {
+      const streamValue = streamSel.value;
+      if (streamValue === 'другое') {
+        const customValue = (customFacultyInp.value || '').trim();
+        streamFinalInp.value = customValue || 'другое';
       } else {
+        streamFinalInp.value = streamValue;
+      }
+    }
+
+    // ====== Landing type detection (опционально; оставлено для совместимости) ======
+    function detectLandingType() {
+      return CONFIG.IS_GENERAL_LANDING ? CONFIG.LANDING_TYPE_GENERAL : '';
+    }
+
+    // ====== Forum param (из start_param бота или query) ======
+    const ALLOWED_FORUMS = ['ПФМ','ПФС','НИТМ','НИТС','НИТН','ТСМ','ДОВ'];
+    function normalizeForumParam(p){
+      const s = (p || '').trim().toLowerCase();
+      if (!s) return '';
+      const map = {
+        'pfm':'ПФМ','pf_msk':'ПФМ','profinance_msk':'ПФМ',
+        'pfs':'ПФС','pf_spb':'ПФС','profinance_spb':'ПФС',
+        'nitm':'НИТМ','findit_msk':'НИТМ',
+        'nits':'НИТС','findit_spb':'НИТС',
+        'nitn':'НИТН','findit_nsk':'НИТН',
+        'tcm':'ТСМ','technocareer':'ТСМ','technocareer_msk':'ТСМ',
+        'dov':'ДОВ','vacancyday':'ДОВ'
+      };
+      const guess = map[s] || map[s.replace(/[^a-z_]/g,'')] || '';
+      if (guess) return guess;
+      // если передали прямо "ПФМ"
+      const up = (p || '').trim().toUpperCase();
+      return ALLOWED_FORUMS.includes(up) ? up : '';
+    }
+
+    function applyStartParam(){
+      const urlParam = new URLSearchParams(location.search).get('forum') || new URLSearchParams(location.search).get('event');
+      const startParam = tg?.initDataUnsafe?.start_param;
+      const forum = normalizeForumParam(urlParam || startParam || '');
+
+      if (forum) {
+        CONFIG.IS_GENERAL_LANDING = false;
+        CONFIG.FORUM_FIXED = forum;
+      } else {
+        CONFIG.IS_GENERAL_LANDING = true;
+      }
+    }
+
+    function currentForumCode(){
+      return CONFIG.IS_GENERAL_LANDING ? (careerdaySel.value || '') : CONFIG.FORUM_FIXED;
+    }
+
+    // ====== Forum UI ======
+    function forumToKey(cd) {
+      if (cd === "ПФМ" || cd === "ПФС") return "PF";
+      if (cd === "НИТМ" || cd === "НИТС" || cd === "НИТН") return "NIT";
+      if (cd === "ТСМ") return "TCM";
+      if (cd === "ДОВ") return "DOV";
+      return "PF";
+    }
+
+    function applyForumUI(cd) {
+      const key = forumToKey(cd);
+
+      if (cd === "ДОВ") {
+        yearWrap.style.display = "none";
+        yearSel.required = false;
+
+        ageWrap.style.display = "block";
+
+        if (CONFIG.DOV_HIDE_STREAM) {
+          streamWrap.style.display = "none";
+          streamSel.required = false;
+          toggleCustomFacultyField(false);
+        } else {
+          streamWrap.style.display = "block";
+          streamLabel.textContent = "Какие вакансии тебе интересны?";
+          streamSel.required = true;
+        }
+      } else {
+        yearWrap.style.display = "block";
+        yearSel.required = true;
+
+        ageWrap.style.display = "none";
+
         streamWrap.style.display = "block";
-        streamLabel.textContent = "Какие вакансии тебе интересны?";
+        streamLabel.textContent = "На каком направлении обучаешься? Выбери самое близкое к факультету";
         streamSel.required = true;
       }
-    } else {
-      yearWrap.style.display = "block";
-      yearSel.required = true;
 
-      ageWrap.style.display = "none";
+      if (streamWrap.style.display !== "none") {
+        const opts = STREAMS[key] || [];
+        streamSel.innerHTML = "";
+        const p = document.createElement("option");
+        p.value = "";
+        p.disabled = true;
+        p.selected = true;
+        p.textContent = "Выберите";
+        streamSel.appendChild(p);
 
-      streamWrap.style.display = "block";
-      streamLabel.textContent = "На каком направлении обучаешься? Выбери самое близкое к факультету";
-      streamSel.required = true;
-    }
+        opts.forEach(v => {
+          const o = document.createElement("option");
+          o.textContent = v;
+          streamSel.appendChild(o);
+        });
 
-    if (streamWrap.style.display !== "none") {
-      const opts = STREAMS[key] || [];
-      streamSel.innerHTML = "";
-      const p = document.createElement("option");
-      p.value = "";
-      p.disabled = true;
-      p.selected = true;
-      p.textContent = "Выберите";
-      streamSel.appendChild(p);
+        // (пере)назначаем обработчики
+        streamSel.onchange = function() {
+          if (this.value === 'другое') toggleCustomFacultyField(true);
+          else toggleCustomFacultyField(false);
+          updateStreamFinalValue();
+        };
 
-      opts.forEach(v => {
-        const o = document.createElement("option");
-        o.textContent = v;
-        streamSel.appendChild(o);
-      });
-
-      // Важно: не плодим обработчики при каждом applyForumUI
-      streamSel.onchange = function() {
-        if (this.value === 'другое') toggleCustomFacultyField(true);
-        else toggleCustomFacultyField(false);
-        updateStreamFinalValue();
-      };
-
-      if (customFacultyInp) {
-        customFacultyInp.oninput = function() { updateStreamFinalValue(); };
-      }
-    }
-
-    toggleCustomFacultyField(false);
-  }
-
-  function populateForumOptions() {
-    if (!careerdaySel) return;
-
-    while (careerdaySel.options.length > 1) {
-      careerdaySel.remove(1);
-    }
-
-    Object.entries(FORUM_NAMES_WITH_DATES).forEach(([code, nameWithDate]) => {
-      const option = document.createElement("option");
-      option.value = code;
-      option.textContent = nameWithDate;
-      careerdaySel.appendChild(option);
-    });
-
-    careerdaySel.onchange = function() {
-      applyForumUI(this.value);
-      loadedSheet = "";
-      ensureVuzLoaded().catch(() => {});
-    };
-  }
-
-  // ====== VUZ AUTOCOMPLETE ======
-  function normalizeText(s) {
-    // Если в Telegram WebView будут проблемы с \p{L}, замени на более простую регулярку.
-    return (s || "")
-      .toLowerCase()
-      .replace(/ё/g, "е")
-      .replace(/[^\p{L}\p{N}\s\-\(\)\.]/gu, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function csvUrlBySheetName(sheetName) {
-    const sheet = encodeURIComponent(sheetName);
-    return `https://docs.google.com/spreadsheets/d/${CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`;
-  }
-
-  function detectCityFromForum(cd) {
-    if (cd === "ПФС" || cd === "НИТС") return "SPB";
-    if (cd === "НИТН") return "NSK";
-    if (cd === "ДОВ" || cd === "ПФМ" || cd === "НИТМ" || cd === "ТСМ") return "MSK";
-    return "";
-  }
-
-  function detectCityFallbackFromLandingType(lt) {
-    const l = (lt || "").toLowerCase();
-    const p = (location.pathname || "").toLowerCase();
-    if (l.startsWith("nitn_") || l.includes("nsk") || p.includes("findit_nsk")) return "NSK";
-    if (l.startsWith("pfs_") || l.startsWith("nits_") || l.includes("spb") || p.includes("profinance_spb") || p.includes("findit_spb")) return "SPB";
-    return "MSK";
-  }
-
-  function pickSheetName() {
-    const cd = CONFIG.IS_GENERAL_LANDING ? (careerdaySel.value || "") : CONFIG.FORUM_FIXED;
-    if (cd === "ДОВ") return SHEETS.MSK_SSUZ;
-
-    const cityByForum = detectCityFromForum(cd);
-    const city = cityByForum || detectCityFallbackFromLandingType(landingTypeInp.value || detectLandingType());
-
-    if (city === "NSK") return SHEETS.NSK_VUZ;
-    if (city === "SPB") return SHEETS.SPB_VUZ;
-    return SHEETS.MSK_VUZ;
-  }
-
-  function parseCSV(text) {
-    const rows = [];
-    let row = [];
-    let cur = "";
-    let inQuotes = false;
-
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-
-      if (inQuotes) {
-        if (ch === '"') {
-          if (text[i + 1] === '"') { cur += '"'; i++; }
-          else inQuotes = false;
-        } else cur += ch;
-      } else {
-        if (ch === '"') inQuotes = true;
-        else if (ch === ",") { row.push(cur); cur = ""; }
-        else if (ch === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; }
-        else if (ch !== "\r") cur += ch;
-      }
-    }
-    if (cur.length || row.length) { row.push(cur); rows.push(row); }
-    return rows;
-  }
-
-  function findColIndex(headers, variants) {
-    const normHeaders = headers.map(h => normalizeText(h));
-    for (const v of variants) {
-      const nv = normalizeText(v);
-      const idx = normHeaders.findIndex(h => h === nv);
-      if (idx !== -1) return idx;
-    }
-    return -1;
-  }
-
-  let vuzEntries = [];
-  let loadedSheet = "";
-  const sheetCache = new Map();
-
-  async function loadVuzSheet(sheetName) {
-    if (sheetCache.has(sheetName)) return sheetCache.get(sheetName);
-
-    const url = csvUrlBySheetName(sheetName);
-    try {
-      const r = await fetch(url, { method: "GET", mode: "cors" });
-      if (!r.ok) throw new Error("Не удалось загрузить CSV из Google Sheets");
-      const text = await r.text();
-
-      const rows = parseCSV(text).filter(r => r.some(c => String(c || "").trim() !== ""));
-      if (!rows.length) return [];
-
-      const headers = rows[0].map(String);
-      const colLabel = findColIndex(headers, ["Название УЗ", "Название", "ВУЗ", "УЗ"]);
-      const colAlias = findColIndex(headers, ["От пользователя", "Пользователь", "Alias", "Синоним"]);
-      const colUnified = findColIndex(headers, ["Унифицированное", "Унифиц.", "Код", "ID"]);
-
-      const li = (colLabel !== -1) ? colLabel : 0;
-      const ai = (colAlias !== -1) ? colAlias : 1;
-      const ui = (colUnified !== -1) ? colUnified : 2;
-
-      const map = new Map(); // unified -> { label, unified, aliases:Set }
-
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const label = String(row[li] ?? "").trim();
-        const alias = String(row[ai] ?? "").trim();
-        const unified = String(row[ui] ?? "").trim();
-        if (!unified) continue;
-
-        if (!map.has(unified)) {
-          map.set(unified, { label: label || unified, unified, aliases: new Set() });
+        if (customFacultyInp) {
+          customFacultyInp.oninput = function() { updateStreamFinalValue(); };
         }
-        const obj = map.get(unified);
-        if (label) obj.label = label;
-        if (label) obj.aliases.add(label);
-        if (alias) obj.aliases.add(alias);
-        obj.aliases.add(unified);
       }
 
-      const built = [];
-      for (const obj of map.values()) {
-        const aliasStr = Array.from(obj.aliases).map(normalizeText).filter(Boolean).join(" | ");
-        built.push({ label: obj.label, unified: obj.unified, searchBlob: aliasStr });
-      }
-
-      built.sort((a, b) => a.label.localeCompare(b.label, "ru"));
-      sheetCache.set(sheetName, built);
-      return built;
-    } catch (error) {
-      console.error("Ошибка загрузки списка вузов:", error);
-      return [];
+      toggleCustomFacultyField(false);
+      updateStreamFinalValue();
+      renderFaq(currentForumCode());
     }
-  }
 
-  async function ensureVuzLoaded() {
-    const sheetName = pickSheetName();
-    if (sheetName === loadedSheet && vuzEntries.length) return;
-    loadedSheet = sheetName;
-    vuzEntries = await loadVuzSheet(sheetName);
-  }
+    function populateForumOptions() {
+      if (!careerdaySel) return;
 
-  function hideVuzDropdown() {
-    if (vuzDropdown) {
-      vuzDropdown.style.display = "none";
-      vuzDropdown.innerHTML = "";
-    }
-  }
+      while (careerdaySel.options.length > 1) careerdaySel.remove(1);
 
-  function showVuzDropdown(items) {
-    if (!vuzDropdown || !items || items.length === 0) { hideVuzDropdown(); return; }
-
-    vuzDropdown.innerHTML = "";
-    items.forEach(item => {
-      const div = document.createElement("div");
-      div.textContent = item.label;
-      div.className = "ft-dropdown-item";
-      div.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        vuzInp.value = item.label;
-        vuzUnifiedInp.value = item.unified;
-        hideVuzDropdown();
+      Object.entries(FORUM_NAMES_WITH_DATES).forEach(([code, nameWithDate]) => {
+        const option = document.createElement("option");
+        option.value = code;
+        option.textContent = nameWithDate;
+        careerdaySel.appendChild(option);
       });
-      vuzDropdown.appendChild(div);
-    });
-    vuzDropdown.style.display = "block";
-  }
 
-  function scoreItem(item, qNorm) {
-    const lbl = normalizeText(item.label);
-    if (lbl.startsWith(qNorm)) return 0;
-    const idx = item.searchBlob.indexOf(qNorm);
-    if (idx === 0) return 1;
-    if (idx > 0) return 2;
-    return 99;
-  }
-
-  function searchVuz(q) {
-    const qNorm = normalizeText(q);
-    if (qNorm.length < CONFIG.VUZ_MIN_CHARS || !vuzEntries.length) return [];
-
-    const results = [];
-    for (const item of vuzEntries) {
-      if (item.searchBlob.includes(qNorm)) {
-        results.push(item);
-        if (results.length >= 250) break;
-      }
-    }
-
-    results.sort((a, b) => {
-      const sa = scoreItem(a, qNorm);
-      const sb = scoreItem(b, qNorm);
-      if (sa !== sb) return sa - sb;
-      return a.label.localeCompare(b.label, "ru");
-    });
-
-    return results.slice(0, CONFIG.VUZ_SUGGEST_LIMIT);
-  }
-
-  function initVuzAutocomplete() {
-    if (!vuzInp || !vuzDropdown) return;
-
-    vuzInp.addEventListener("input", () => { vuzUnifiedInp.value = ""; });
-
-    let vuzTimer = null;
-    vuzInp.addEventListener("keyup", () => {
-      clearTimeout(vuzTimer);
-      vuzTimer = setTimeout(() => {
-        const q = vuzInp.value || "";
-        if (normalizeText(q).length < CONFIG.VUZ_MIN_CHARS) { hideVuzDropdown(); return; }
-        showVuzDropdown(searchVuz(q));
-      }, 80);
-    });
-
-    vuzInp.addEventListener("focus", async () => {
-      try { await ensureVuzLoaded(); } catch(e) {}
-      const q = vuzInp.value || "";
-      if (normalizeText(q).length >= CONFIG.VUZ_MIN_CHARS) showVuzDropdown(searchVuz(q));
-    });
-
-    document.addEventListener("click", (e) => {
-      if (vuzDropdown && !vuzDropdown.contains(e.target) && e.target !== vuzInp) hideVuzDropdown();
-    });
-
-    vuzDropdown.addEventListener("click", (e) => { e.stopPropagation(); });
-  }
-// ====== START PARAM ROUTING (Telegram / browser) ======
-
-// 1) читаем стартовый параметр
-function getStartParam() {
-  // Telegram
-  const sp = tg?.initDataUnsafe?.start_param;
-  if (sp) return String(sp).trim();
-
-  // fallback для теста в браузере
-  const u = new URL(location.href);
-  return (u.searchParams.get("start") || u.searchParams.get("scenario") || "").trim();
-}
-
-// 2) маппинг сценариев -> конфиг
-// Можно расширять как угодно
-const SCENARIOS = {
-  // общий режим
-  all: { mode: "general" },
-
-  // solo сценарии
-  pfm: { mode: "solo", forum: "ПФМ", landing_type: "pfm_tg" },
-  pfs: { mode: "solo", forum: "ПФС", landing_type: "pfs_tg" },
-  nitm: { mode: "solo", forum: "НИТМ", landing_type: "nitm_tg" },
-  nits: { mode: "solo", forum: "НИТС", landing_type: "nits_tg" },
-  nitn: { mode: "solo", forum: "НИТН", landing_type: "nitn_tg" },
-  tcm: { mode: "solo", forum: "ТСМ", landing_type: "tcm_tg" },
-  dov: { mode: "solo", forum: "ДОВ", landing_type: "dov_tg" },
-};
-
-// 3) применяем сценарий к CONFIG и UI
-function applyScenario() {
-  const raw = getStartParam().toLowerCase();
-  const s = SCENARIOS[raw] || SCENARIOS.all;
-
-  if (s.mode === "solo") {
-    // переключаем в соло режим
-    CONFIG.IS_GENERAL_LANDING = false;
-    CONFIG.FORUM_FIXED = s.forum;
-
-    // landing_type: чтобы на бэке/в таблице различать источник
-    // (тут можно оставить как есть, если не нужно)
-    if (landingTypeInp) landingTypeInp.value = s.landing_type || "";
-
-    // если хочется, чтобы dropdown форума НЕ показывался:
-    if (careerdayWrap) careerdayWrap.style.display = "none";
-
-    // подставим фиксированное значение форума (важно для payload)
-    if (careerdaySel) {
-      // очищаем и кладем ровно одну опцию
-      careerdaySel.innerHTML = "";
-      const opt = document.createElement("option");
-      opt.value = s.forum;
-      opt.textContent = FORUM_NAMES_WITH_DATES[s.forum] || s.forum;
-      careerdaySel.appendChild(opt);
-      careerdaySel.value = s.forum;
-    }
-
-    // применяем UI-правила под конкретный форум
-    applyForumUI(s.forum);
-
-    // сбросим и перезагрузим список вузов под город
-    loadedSheet = "";
-    ensureVuzLoaded().catch(() => {});
-    return;
-  }
-
-  // GENERAL
-  CONFIG.IS_GENERAL_LANDING = true;
-  if (careerdayWrap) careerdayWrap.style.display = "block";
-}
-  // ====== INIT ======
-function initializeForm() {
-  // 1) базовый landing type (если надо)
-  landingTypeInp.value = detectLandingType();
-  if (CONFIG.IS_GENERAL_LANDING) landingTypeInp.value = CONFIG.LANDING_TYPE_GENERAL;
-
-  // 2) применяем сценарий из start_param (он может переключить режим на solo)
-  applyScenario();
-
-  // 3) дальше — инициализация UI зависит от режима
-  if (CONFIG.IS_GENERAL_LANDING) {
-    // общий режим: заполняем список форумов
-    populateForumOptions();
-    // initialForum пустой, пользователь выбирает сам
-    applyForumUI("");
-  } else {
-    // соло режим: options уже выставлены в applyScenario()
-    // здесь просто ensureVuzLoaded и т.п.
-    applyForumUI(CONFIG.FORUM_FIXED);
-  }
-
-  initVuzAutocomplete();
-  ensureVuzLoaded().catch(() => {});
-}
-
-  // ====== SUBMIT ======
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    setError(errEmail, '');
-    setError(errPhone, '');
-    setError(errConsent, '');
-    setError(errCustomFaculty, '');
-    formMsg.textContent = '';
-    formMsg.style.display = 'none';
-
-    const email = (emailInp.value || '').trim();
-    const phone = normalizePhone(phoneInp.value || '');
-    if (phoneInp) phoneInp.value = phone;
-
-    let isValid = true;
-
-    if (!isValidEmail(email)) { setError(errEmail, 'Проверьте корректность email.'); isValid = false; }
-    if (!isValidPhone(phone)) { setError(errPhone, 'Телефон должен быть в формате +79998887766.'); isValid = false; }
-
-    if (CONFIG.IS_GENERAL_LANDING && (!careerdaySel.value || careerdaySel.value === "")) {
-      formMsg.textContent = 'Пожалуйста, выберите форум для посещения.';
-      formMsg.style.display = 'block';
-      formMsg.style.color = '#ff6b6b';
-      isValid = false;
-    }
-
-    if (streamSel.value === 'другое' && streamWrap.style.display !== 'none') {
-      const customFaculty = (customFacultyInp.value || '').trim();
-      if (!customFaculty) { setError(errCustomFaculty, 'Пожалуйста, укажите свой факультет.'); isValid = false; }
-    }
-
-    if (!consentChk.checked) { setError(errConsent, 'Нужно согласие, чтобы продолжить.'); isValid = false; }
-    if (!isValid) return;
-
-    submitBtn.disabled = true;
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Отправляем...';
-
-    try {
-      const cd = CONFIG.IS_GENERAL_LANDING ? careerdaySel.value : CONFIG.FORUM_FIXED;
-      const vuzTyped = (vuzInp.value || '').trim();
-      const vuzUnified = (vuzUnifiedInp.value || '').trim();
-      const vuzToSave = vuzUnified || vuzTyped || null;
-
-      const streamValue = streamFinalInp.value || streamSel.value;
-
-      const payload = {
-        firstname: (firstnameInp.value || '').trim(),
-        email,
-        mobteleph: phone,
-        vuz: vuzToSave,
-        vuz_title: vuzTyped || null,
-        vuz_unified: vuzUnified || null,
-        careerday: cd,
-        landing_type: CONFIG.IS_GENERAL_LANDING ? CONFIG.LANDING_TYPE_GENERAL : (landingTypeInp.value || detectLandingType() || null),
-        year_of_grad: (cd === "ДОВ") ? null : (yearSel.value || null),
-        age: (cd === "ДОВ") ? (ageSel.value || null) : null,
-        stream: streamValue,
-        consent: true,
-        form_source: "telegram_webapp",
-        page_url: location.href,
-        ts: new Date().toISOString()
+      careerdaySel.onchange = function() {
+        applyForumUI(this.value);
+        loadedSheet = "";
+        ensureVuzLoaded().catch(() => {});
       };
+    }
 
-      // UTM-метки
-      const u = new URL(location.href);
-      payload.utm_source = u.searchParams.get("utm_source") || "";
-      payload.utm_medium = u.searchParams.get("utm_medium") || "";
-      payload.utm_campaign = u.searchParams.get("utm_campaign") || "";
-      payload.utm_content = u.searchParams.get("utm_content") || "";
-      payload.utm_term = u.searchParams.get("utm_term") || "";
-      payload.bot_tag = "";
+    // ====== VUZ autocomplete (из вашего кода) ======
+    function normalizeText(s) {
+      return (s || "")
+        .toLowerCase()
+        .replace(/ё/g, "е")
+        .replace(/[^\p{L}\p{N}\s\-\(\)\.]/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
 
-      // Telegram доп. данные (полезно для аналитики/антифрода)
-      if (tg) {
-        payload.tg_init_data = tg.initData || "";
-        payload.tg_user_id = tg.initDataUnsafe?.user?.id || null;
-        payload.tg_username = tg.initDataUnsafe?.user?.username || null;
+    function csvUrlBySheetName(sheetName) {
+      const sheet = encodeURIComponent(sheetName);
+      return `https://docs.google.com/spreadsheets/d/${CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`;
+    }
+
+    function detectCityFromForum(cd) {
+      if (cd === "ПФС" || cd === "НИТС") return "SPB";
+      if (cd === "НИТН") return "NSK";
+      if (cd === "ДОВ" || cd === "ПФМ" || cd === "НИТМ" || cd === "ТСМ") return "MSK";
+      return "";
+    }
+
+    function pickSheetName() {
+      const cd = currentForumCode() || CONFIG.FORUM_FIXED;
+      if (cd === "ДОВ") return SHEETS.MSK_SSUZ;
+      const city = detectCityFromForum(cd) || "MSK";
+      if (city === "NSK") return SHEETS.NSK_VUZ;
+      if (city === "SPB") return SHEETS.SPB_VUZ;
+      return SHEETS.MSK_VUZ;
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (text[i + 1] === '"') { cur += '"'; i++; }
+            else inQuotes = false;
+          } else cur += ch;
+        } else {
+          if (ch === '"') inQuotes = true;
+          else if (ch === ",") { row.push(cur); cur = ""; }
+          else if (ch === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; }
+          else if (ch === "\r") { /* ignore */ }
+          else cur += ch;
+        }
       }
+      if (cur.length || row.length) { row.push(cur); rows.push(row); }
+      return rows;
+    }
 
-      const response = await fetch(CONFIG.API_BASE, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
+    function findColIndex(headers, variants) {
+      const normHeaders = headers.map(h => normalizeText(h));
+      for (const v of variants) {
+        const nv = normalizeText(v);
+        const idx = normHeaders.findIndex(h => h === nv);
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    }
+
+    let vuzEntries = [];
+    let loadedSheet = "";
+    const sheetCache = new Map();
+
+    async function loadVuzSheet(sheetName) {
+      if (sheetCache.has(sheetName)) return sheetCache.get(sheetName);
+
+      const url = csvUrlBySheetName(sheetName);
+      try {
+        const r = await fetch(url, { method: "GET", mode: "cors" });
+        if (!r.ok) throw new Error("Не удалось загрузить CSV из Google Sheets");
+        const text = await r.text();
+
+        const rows = parseCSV(text).filter(r => r.some(c => String(c || "").trim() !== ""));
+        if (!rows.length) return [];
+
+        const headers = rows[0].map(String);
+        const colLabel = findColIndex(headers, ["Название УЗ", "Название", "ВУЗ", "УЗ"]);
+        const colAlias = findColIndex(headers, ["От пользователя", "Пользователь", "Alias", "Синоним"]);
+        const colUnified = findColIndex(headers, ["Унифицированное", "Унифиц.", "Код", "ID"]);
+
+        const li = (colLabel !== -1) ? colLabel : 0;
+        const ai = (colAlias !== -1) ? colAlias : 1;
+        const ui = (colUnified !== -1) ? colUnified : 2;
+
+        const map = new Map(); // unified -> { label, unified, aliases:Set }
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const label = String(row[li] ?? "").trim();
+          const alias = String(row[ai] ?? "").trim();
+          const unified = String(row[ui] ?? "").trim();
+          if (!unified) continue;
+
+          if (!map.has(unified)) map.set(unified, { label: label || unified, unified, aliases: new Set() });
+          const obj = map.get(unified);
+          if (label) obj.label = label;
+          if (label) obj.aliases.add(label);
+          if (alias) obj.aliases.add(alias);
+          obj.aliases.add(unified);
+        }
+
+        const built = [];
+        for (const obj of map.values()) {
+          const aliasStr = Array.from(obj.aliases).map(normalizeText).filter(Boolean).join(" | ");
+          built.push({ label: obj.label, unified: obj.unified, searchBlob: aliasStr });
+        }
+
+        built.sort((a, b) => a.label.localeCompare(b.label, "ru"));
+        sheetCache.set(sheetName, built);
+        return built;
+      } catch (error) {
+        console.error("Ошибка загрузки списка вузов:", error);
+        return [];
+      }
+    }
+
+    async function ensureVuzLoaded() {
+      const sheetName = pickSheetName();
+      if (sheetName === loadedSheet && vuzEntries.length) return;
+      loadedSheet = sheetName;
+      vuzEntries = await loadVuzSheet(sheetName);
+    }
+
+    function hideVuzDropdown() {
+      if (vuzDropdown) {
+        vuzDropdown.style.display = "none";
+        vuzDropdown.innerHTML = "";
+      }
+    }
+
+    function showVuzDropdown(items) {
+      if (!vuzDropdown || !items || items.length === 0) { hideVuzDropdown(); return; }
+      vuzDropdown.innerHTML = "";
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item.label;
+        div.className = "ft-dropdown-item";
+        div.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          vuzInp.value = item.label;
+          vuzUnifiedInp.value = item.unified;
+          hideVuzDropdown();
+        });
+        vuzDropdown.appendChild(div);
+      });
+      vuzDropdown.style.display = "block";
+    }
+
+    function scoreItem(item, qNorm) {
+      const lbl = normalizeText(item.label);
+      if (lbl.startsWith(qNorm)) return 0;
+      const idx = item.searchBlob.indexOf(qNorm);
+      if (idx === 0) return 1;
+      if (idx > 0) return 2;
+      return 99;
+    }
+
+    function searchVuz(q) {
+      const qNorm = normalizeText(q);
+      if (qNorm.length < CONFIG.VUZ_MIN_CHARS || !vuzEntries.length) return [];
+      const results = [];
+      for (const item of vuzEntries) {
+        if (item.searchBlob.includes(qNorm)) {
+          results.push(item);
+          if (results.length >= 250) break;
+        }
+      }
+      results.sort((a, b) => {
+        const sa = scoreItem(a, qNorm);
+        const sb = scoreItem(b, qNorm);
+        if (sa !== sb) return sa - sb;
+        return a.label.localeCompare(b.label, "ru");
+      });
+      return results.slice(0, CONFIG.VUZ_SUGGEST_LIMIT);
+    }
+
+    function initVuzAutocomplete() {
+      if (!vuzInp || !vuzDropdown) return;
+      vuzInp.addEventListener("input", () => { vuzUnifiedInp.value = ""; });
+
+      let vuzTimer = null;
+      vuzInp.addEventListener("keyup", () => {
+        clearTimeout(vuzTimer);
+        vuzTimer = setTimeout(() => {
+          const q = vuzInp.value || "";
+          if (normalizeText(q).length < CONFIG.VUZ_MIN_CHARS) { hideVuzDropdown(); return; }
+          showVuzDropdown(searchVuz(q));
+        }, 80);
       });
 
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || 'Ошибка отправки формы');
+      vuzInp.addEventListener("focus", async () => {
+        try { await ensureVuzLoaded(); } catch(e) {}
+        const q = vuzInp.value || "";
+        if (normalizeText(q).length >= CONFIG.VUZ_MIN_CHARS) showVuzDropdown(searchVuz(q));
+      });
 
-      showSuccessMessage();
-    } catch (error) {
-      console.error('Ошибка отправки формы:', error);
-      formMsg.textContent = 'Не получилось отправить форму. Попробуйте ещё раз чуть позже.';
-      formMsg.style.display = 'block';
-      formMsg.style.color = '#ff6b6b';
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
+      document.addEventListener("click", (e) => {
+        if (vuzDropdown && !vuzDropdown.contains(e.target) && e.target !== vuzInp) hideVuzDropdown();
+      });
+
+      vuzDropdown.addEventListener("click", (e) => e.stopPropagation());
     }
-  });
 
-  // init
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeForm);
-  } else {
-    initializeForm();
-  }
+    // ====== FAQ render ======
+    function renderFaq(code){
+      const cd = code || currentForumCode() || 'ПФМ';
+      const items = FAQ_DATA[cd] || [];
+      const name = getForumName(cd);
+      faqTitle.textContent = `FAQ — ${name}`;
+      faqList.innerHTML = '';
 
-})();
-</script>
+      items.forEach((it, idx) => {
+        const d = document.createElement('details');
+        if (idx === 0) d.open = true;
+        const s = document.createElement('summary');
+        s.textContent = it.q;
+        const a = document.createElement('div');
+        a.className = 'faq-a';
+        a.textContent = it.a;
+        d.appendChild(s);
+        d.appendChild(a);
+        faqList.appendChild(d);
+      });
 
+      const src = FAQ_PAGES[cd];
+      faqMeta.innerHTML = src
+        ? `Первоисточник: <a href="${src}" target="_blank" rel="noopener">${src}</a>`
+        : '';
+    }
+
+    // ====== Init form ======
+    function populateForumAndMode(){
+      applyStartParam();
+
+      landingTypeInp.value = detectLandingType();
+
+      populateForumOptions();
+
+      if (CONFIG.IS_GENERAL_LANDING) {
+        careerdayWrap.style.display = "block";
+        careerdaySel.value = "";
+        applyForumUI("");
+      } else {
+        careerdayWrap.style.display = "none";
+        // фиксируем выбор
+        careerdaySel.innerHTML = "";
+        const opt = document.createElement('option');
+        opt.value = CONFIG.FORUM_FIXED;
+        opt.textContent = getForumName(CONFIG.FORUM_FIXED);
+        careerdaySel.appendChild(opt);
+        careerdaySel.value = CONFIG.FORUM_FIXED;
+        applyForumUI(CONFIG.FORUM_FIXED);
+      }
+
+      initVuzAutocomplete();
+      ensureVuzLoaded().catch(() => {});
+
+      // автоподстановка имени из Telegram
+      if (tg?.initDataUnsafe?.user && firstnameInp && !firstnameInp.value) {
+        firstnameInp.value = tg.initDataUnsafe.user.first_name || '';
+      }
+
+      renderFaq(currentForumCode() || CONFIG.FORUM_FIXED);
+    }
+
+    // ====== Success / close ======
+    function showSuccessMessage() {
+      const forumCode = currentForumCode() || CONFIG.FORUM_FIXED;
+      successText.innerHTML = generateSuccessText(forumCode);
+      form.style.display = 'none';
+      successContainer.style.display = 'block';
+      setTimeout(() => formCore.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      tg?.HapticFeedback?.notificationOccurred?.('success');
+    }
+
+    function closeSuccess(e) {
+      e?.preventDefault?.();
+      // В Telegram — закрываем миниапп, в браузере — просто сбрасываем
+      if (tg) { tg.close(); return; }
+
+      successContainer.style.display = 'none';
+      form.style.display = 'block';
+      form.reset();
+      vuzUnifiedInp.value = '';
+      hideVuzDropdown();
+      toggleCustomFacultyField(false);
+      streamFinalInp.value = '';
+      populateForumAndMode();
+    }
+
+    closeSuccessBtn?.addEventListener('click', closeSuccess);
+
+    // ====== Submit ======
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      setError(errEmail, '');
+      setError(errPhone, '');
+      setError(errConsent, '');
+      setError(errCustomFaculty, '');
+      formMsg.textContent = '';
+      formMsg.style.display = 'none';
+
+      const email = (emailInp.value || '').trim();
+      const phone = normalizePhone(phoneInp.value || '');
+      if (phoneInp) phoneInp.value = phone;
+
+      let isValid = true;
+
+      if (!isValidEmail(email)) { setError(errEmail, 'Проверьте корректность email.'); isValid = false; }
+      if (!isValidPhone(phone)) { setError(errPhone, 'Телефон должен быть в формате +79998887766.'); isValid = false; }
+
+      if (CONFIG.IS_GENERAL_LANDING && (!careerdaySel.value || careerdaySel.value === "")) {
+        formMsg.textContent = 'Пожалуйста, выберите форум для посещения.';
+        formMsg.style.display = 'block';
+        formMsg.style.color = '#ff6b6b';
+        isValid = false;
+      }
+
+      if (streamSel.value === 'другое' && streamWrap.style.display !== 'none') {
+        const customFaculty = (customFacultyInp.value || '').trim();
+        if (!customFaculty) { setError(errCustomFaculty, 'Пожалуйста, укажите свой факультет.'); isValid = false; }
+      }
+
+      if (!consentChk.checked) { setError(errConsent, 'Нужно согласие, чтобы продолжить.'); isValid = false; }
+
+      if (!isValid) return;
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Отправляем...';
+
+      try {
+        const cd = currentForumCode() || CONFIG.FORUM_FIXED;
+        const vuzTyped = (vuzInp.value || '').trim();
+        const vuzUnified = (vuzUnifiedInp.value || '').trim();
+        const vuzToSave = vuzUnified || vuzTyped || null;
+        const streamValue = streamFinalInp.value || streamSel.value;
+
+        const payload = {
+          firstname: (firstnameInp.value || '').trim(),
+          email,
+          mobteleph: phone,
+          vuz: vuzToSave,
+          vuz_title: vuzTyped || null,
+          vuz_unified: vuzUnified || null,
+          careerday: cd,
+          landing_type: CONFIG.IS_GENERAL_LANDING ? CONFIG.LANDING_TYPE_GENERAL : (landingTypeInp.value || null),
+          year_of_grad: (cd === "ДОВ") ? null : (yearSel.value || null),
+          age: (cd === "ДОВ") ? (ageSel.value || null) : null,
+          stream: streamValue,
+          consent: true,
+          form_source: "telegram_webapp",
+          page_url: location.href,
+          ts: new Date().toISOString()
+        };
+
+        // UTM
+        const u = new URL(location.href);
+        payload.utm_source = u.searchParams.get("utm_source") || "";
+        payload.utm_medium = u.searchParams.get("utm_medium") || "";
+        payload.utm_campaign = u.searchParams.get("utm_campaign") || "";
+        payload.utm_content = u.searchParams.get("utm_content") || "";
+        payload.utm_term = u.searchParams.get("utm_term") || "";
+        payload.bot_tag = "";
+
+        // Telegram
+        if (tg) {
+          payload.tg_init_data = tg.initData || "";
+          payload.tg_user_id = tg.initDataUnsafe?.user?.id || null;
+          payload.tg_username = tg.initDataUnsafe?.user?.username || null;
+          payload.tg_first_name = tg.initDataUnsafe?.user?.first_name || null;
+          payload.tg_last_name = tg.initDataUnsafe?.user?.last_name || null;
+          payload.tg_language_code = tg.initDataUnsafe?.user?.language_code || null;
+          payload.tg_platform = tg.platform || null;
+          payload.tg_start_param = tg.initDataUnsafe?.start_param || null;
+        }
+
+        const response = await fetch(CONFIG.API_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'Ошибка отправки формы');
+
+        showSuccessMessage();
+
+      } catch (error) {
+        console.error('Ошибка отправки формы:', error);
+        formMsg.textContent = 'Не получилось отправить форму. Попробуйте ещё раз чуть позже.';
+        formMsg.style.display = 'block';
+        formMsg.style.color = '#ff6b6b';
+        tg?.HapticFeedback?.notificationOccurred?.('error');
+
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // ====== Boot ======
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', populateForumAndMode);
+    } else {
+      populateForumAndMode();
+    }
+
+  })();
+  </script>
 </body>
 </html>
