@@ -932,25 +932,35 @@ function updateFaqTabState() {
       return ALLOWED_FORUMS.includes(up) ? up : '';
     }
 
-    function applyStartParam(){
-      const urlParam = new URLSearchParams(location.search).get('forum') || new URLSearchParams(location.search).get('event');
-      const startParam = tg?.initDataUnsafe?.start_param;
-      const forum = normalizeForumParam(urlParam || startParam || '');
+   function getStartParamRaw() {
+  // 1) Реальный Telegram WebApp
+  const sp = tg?.initDataUnsafe?.start_param;
+  if (sp && String(sp).trim()) return String(sp).trim();
 
-      if (forum) {
-        CONFIG.IS_GENERAL_LANDING = false;
-        CONFIG.FORUM_FIXED = forum;
-      } else {
-        CONFIG.IS_GENERAL_LANDING = true;
-      }
-    }
-    
-    function hasStartParam() {
-      const url = new URL(location.href);
-      const urlForum = url.searchParams.get('start_param') || url.searchParams.get('event');
-      const sp = tg?.initDataUnsafe?.start_param;
-      return Boolean((sp && String(sp).trim()) || (urlForum && String(urlForum).trim()));
-    }
+  // 2) Тест в браузере (удобно): ?start_param=pfm или ?event=pfm или ?forum=pfm
+  const url = new URL(location.href);
+  return (
+    url.searchParams.get('start_param') ||
+    url.searchParams.get('event') ||
+    url.searchParams.get('forum') ||
+    ''
+  ).trim();
+}
+
+function hasStartParam() {
+  return Boolean(getStartParamRaw());
+}
+
+function applyStartParam(){
+  const forum = normalizeForumParam(getStartParamRaw());
+  if (forum) {
+    CONFIG.IS_GENERAL_LANDING = false;
+    CONFIG.FORUM_FIXED = forum;
+  } else {
+    CONFIG.IS_GENERAL_LANDING = true;
+  }
+}
+
 
     function currentForumCode(){
       return CONFIG.IS_GENERAL_LANDING ? (careerdaySel.value || '') : CONFIG.FORUM_FIXED;
