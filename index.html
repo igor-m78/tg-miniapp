@@ -826,9 +826,17 @@ function setTab(which){
 tabReg.addEventListener('click', () => setTab('reg'));
 
 tabFaq.addEventListener('click', () => {
-  if (!isFaqAllowed()) return;
+ if (!isFaqAllowed()) {
+    showToast('Перед тем, как ознакомиться с FAQ, выбери мероприятие😊');
+    return;
+  }
   setTab('faq');
   renderFaq(currentForumCode());
+});
+    tabFaq.addEventListener('mouseenter', () => {
+  if (!isFaqAllowed()) {
+    showToast('Перед тем, как ознакомиться с FAQ, выбери мероприятие😊');
+  }
 });
 
 // ===== FAQ lock/unlock =====
@@ -849,7 +857,29 @@ function updateFaqTabState() {
     setTab('reg');
   }
 }
+let toastEl = null;
+let toastTimer = null;
 
+function showToast(msg) {
+  if (!toastEl) {
+    toastEl = document.createElement('div');
+    toastEl.className = 'ft-toast';
+    document.body.appendChild(toastEl);
+  }
+  toastEl.textContent = msg;
+
+  // показать
+  toastEl.classList.add('show');
+
+  // скрыть через 2.2 сек
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastEl.classList.remove('show');
+  }, 2200);
+
+  // лёгкая вибрация в Telegram
+  tg?.HapticFeedback?.impactOccurred?.('light');
+}
     // ====== Helpers ======
     function setError(el, text) {
       if (!el) return;
