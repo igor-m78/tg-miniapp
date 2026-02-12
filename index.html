@@ -852,6 +852,8 @@ function updateFaqTabState() {
   const allowed = isFaqAllowed();
   tabFaq.classList.toggle('disabled', !allowed);
 
+    if (allowed) hideToast(); 
+
   // Если FAQ открыт, а форум не выбран — возвращаем на регистрацию
   if (!allowed && sectionFaq.classList.contains('active')) {
     setTab('reg');
@@ -860,25 +862,36 @@ function updateFaqTabState() {
 let toastEl = null;
 let toastTimer = null;
 
-function showToast(msg) {
-  if (!toastEl) {
-    toastEl = document.createElement('div');
-    toastEl.className = 'ft-toast';
-    document.body.appendChild(toastEl);
-  }
-  toastEl.textContent = msg;
+function ensureToastEl(){
+  if (toastEl) return toastEl;
+  toastEl = document.createElement('div');
+  toastEl.className = 'ft-toast';
+  document.body.appendChild(toastEl);
+  return toastEl;
+}
+
+function showToast(msg){
+  const el = ensureToastEl();
+  el.textContent = msg;
 
   // показать
-  toastEl.classList.add('show');
+  el.classList.add('show');
 
-  // скрыть через 2.2 сек
+  // автоскрытие
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
-    toastEl.classList.remove('show');
-  }, 2200);
+    hideToast();
+  }, 2000);
 
   // лёгкая вибрация в Telegram
   tg?.HapticFeedback?.impactOccurred?.('light');
+}
+
+function hideToast(){
+  if (!toastEl) return;
+  toastEl.classList.remove('show');
+  clearTimeout(toastTimer);
+  toastTimer = null;
 }
     // ====== Helpers ======
     function setError(el, text) {
