@@ -817,7 +817,12 @@
       sectionFaq.classList.toggle('active', !isReg);
     }
     tabReg.addEventListener('click', () => setTab('reg'));
-    tabFaq.addEventListener('click', () => { setTab('faq'); renderFaq(currentForumCode()); });
+    tabFaq.addEventListener('click', () => {
+      if (!hasStartParam()) return; // FAQ недоступен
+      setTab('faq');
+      renderFaq(currentForumCode());
+    });
+
 
     // ====== Helpers ======
     function setError(el, text) {
@@ -912,6 +917,13 @@
       } else {
         CONFIG.IS_GENERAL_LANDING = true;
       }
+    }
+    
+    function hasStartParam() {
+      const url = new URL(location.href);
+      const urlForum = url.searchParams.get('forum') || url.searchParams.get('event');
+      const sp = tg?.initDataUnsafe?.start_param;
+      return Boolean((sp && String(sp).trim()) || (urlForum && String(urlForum).trim()));
     }
 
     function currentForumCode(){
@@ -1278,7 +1290,18 @@
         firstnameInp.value = tg.initDataUnsafe.user.first_name || '';
       }
 
-      renderFaq(currentForumCode() || CONFIG.FORUM_FIXED);
+      if (hasStartParam()) {
+        renderFaq(currentForumCode() || CONFIG.FORUM_FIXED);
+        }
+      const faqAllowed = hasStartParam();
+
+        tabFaq.style.display = faqAllowed ? '' : 'none';
+        if (!faqAllowed) {
+          // на всякий случай — если кто-то уже был в FAQ
+          setTab('reg');
+          sectionFaq.classList.remove('active');
+        }
+
     }
 
     // ====== Success / close ======
