@@ -975,7 +975,7 @@ function hideToast(){
 
     // ====== Landing type detection (опционально; оставлено для совместимости) ======
     function detectLandingType() {
-      return CONFIG.IS_GENERAL_LANDING ? CONFIG.LANDING_TYPE_GENERAL : '';
+      return CONFIG.LANDING_TYPE_GENERAL; // всегда "bot_tg"
     }
 
     // ====== Forum param (из start_param бота или query) ======
@@ -1520,7 +1520,7 @@ if (tag) localStorage.setItem('bot_tag', tag);
 if (bt) localStorage.setItem('bot_tag', bt);
 payload.bot_tag = bt || "";
         console.log("DEBUG bot_tag:", payload.bot_tag, "URL:", location.href);
-
+        console.log('PAYLOAD landing_type:', payload.landing_type, 'bot_tag:', payload.bot_tag);
         // Telegram
         if (tg) {
           payload.tg_init_data = tg.initData || "";
