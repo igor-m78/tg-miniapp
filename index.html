@@ -1007,6 +1007,7 @@ function hideToast(){
   // 2) Тест в браузере (удобно): ?start_param=pfm или ?event=pfm или ?forum=pfm
   const url = new URL(location.href);
   return (
+    url.searchParams.get('bot_tag') ||
     url.searchParams.get('tgWebAppStartParam') || // <-- важно для Mini App
     url.searchParams.get('start_param') ||
     url.searchParams.get('event') ||
@@ -1021,7 +1022,9 @@ function hasStartParam() {
 }
 
 function applyStartParam(){
-  const forum = normalizeForumParam(getStartParamRaw());
+  const raw = getStartParamRaw();
+  const base = raw.split(/[_-]/)[0]; // pfs из pfs_tgads
+  const forum = normalizeForumParam(base);
   if (forum) {
     CONFIG.IS_GENERAL_LANDING = false;
     CONFIG.FORUM_FIXED = forum;
@@ -1029,7 +1032,8 @@ function applyStartParam(){
     CONFIG.IS_GENERAL_LANDING = true;
   }
 }
-
+const tag = getStartParamRaw();
+if (tag) localStorage.setItem('bot_tag', tag);
 
     function currentForumCode(){
       return CONFIG.IS_GENERAL_LANDING ? (careerdaySel.value || '') : CONFIG.FORUM_FIXED;
