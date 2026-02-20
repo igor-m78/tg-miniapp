@@ -1007,6 +1007,7 @@ function hideToast(){
   // 2) Тест в браузере (удобно): ?start_param=pfm или ?event=pfm или ?forum=pfm
   const url = new URL(location.href);
   return (
+    url.searchParams.get('tgWebAppStartParam') || // <-- важно для Mini App
     url.searchParams.get('start_param') ||
     url.searchParams.get('event') ||
     url.searchParams.get('forum') ||
@@ -1500,7 +1501,7 @@ function applyStartParam(){
         payload.utm_campaign = u.searchParams.get("utm_campaign") || "";
         payload.utm_content = u.searchParams.get("utm_content") || "";
         payload.utm_term = u.searchParams.get("utm_term") || "";
-        payload.bot_tag = u.searchParams.get("start") ||"";
+        payload.bot_tag = getStartParamRaw() ||"";
 
         // Telegram
         if (tg) {
