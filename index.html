@@ -1000,21 +1000,32 @@ function hideToast(){
     }
 
    function getStartParamRaw() {
-  // 1) Реальный Telegram WebApp
+  // 1) Telegram start_param (будет только при startapp)
   const sp = tg?.initDataUnsafe?.start_param;
   if (sp && String(sp).trim()) return String(sp).trim();
 
-  // 2) Тест в браузере (удобно): ?start_param=pfm или ?event=pfm или ?forum=pfm
+  // 2) Query string
   const url = new URL(location.href);
-  return (
+  const fromQuery =
     url.searchParams.get('bot_tag') ||
-    url.searchParams.get('tgWebAppStartParam') || // <-- важно для Mini App
+    url.searchParams.get('tgWebAppStartParam') ||
     url.searchParams.get('start_param') ||
     url.searchParams.get('event') ||
     url.searchParams.get('forum') ||
-    url.searchParams.get('start') ||
-    ''
-  ).trim();
+    url.searchParams.get('start');
+
+  if (fromQuery && String(fromQuery).trim()) return String(fromQuery).trim();
+
+  // 3) Hash (если бот передал так: https://site/#bot_tag=...)
+  const hash = (location.hash || '').replace(/^#/, '');
+  if (hash) {
+    const hs = new URLSearchParams(hash);
+    const fromHash = hs.get('bot_tag');
+    if (fromHash && String(fromHash).trim()) return String(fromHash).trim();
+  }
+
+  // 4) localStorage fallback (ты уже сохраняешь, но раньше не читал)
+  return (localStorage.getItem('bot_tag') || '').trim();
 }
 
 function hasStartParam() {
@@ -1505,7 +1516,10 @@ if (tag) localStorage.setItem('bot_tag', tag);
         payload.utm_campaign = u.searchParams.get("utm_campaign") || "";
         payload.utm_content = u.searchParams.get("utm_content") || "";
         payload.utm_term = u.searchParams.get("utm_term") || "";
-        payload.bot_tag = getStartParamRaw() ||"";
+        const bt = getStartParamRaw();
+if (bt) localStorage.setItem('bot_tag', bt);
+payload.bot_tag = bt || "";
+        console.log("DEBUG bot_tag:", payload.bot_tag, "URL:", location.href);
 
         // Telegram
         if (tg) {
