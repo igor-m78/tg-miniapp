@@ -1500,7 +1500,7 @@ function applyStartParam(){
         payload.utm_campaign = u.searchParams.get("utm_campaign") || "";
         payload.utm_content = u.searchParams.get("utm_content") || "";
         payload.utm_term = u.searchParams.get("utm_term") || "";
-        payload.bot_tag = "";
+        payload.bot_tag = u.searchParams.get("start") ||"";
 
         // Telegram
         if (tg) {
