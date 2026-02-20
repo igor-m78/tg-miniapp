@@ -1007,6 +1007,7 @@ function hideToast(){
   // 2) Query string
   const url = new URL(location.href);
   const fromQuery =
+    url.searchParams.get('startapp') ||
     url.searchParams.get('bot_tag') ||
     url.searchParams.get('tgWebAppStartParam') ||
     url.searchParams.get('start_param') ||
